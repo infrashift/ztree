@@ -27,8 +27,8 @@ Tracking: [ISSUE-001](.okfw/issues/issue-001-vendor-the-reference-runtime-and-th
 
 ## Phase 2 — Lexer bridge
 Tracking: [ISSUE-002](.okfw/issues/issue-002-lexer-bridge-for-the-lex-function-and-the-external-scanners--01a1e96b8f48.md)
-- [ ] Implement `TSLexer` in `src/lexer.zig`: UTF-8 decode, byte, row and column positions
-- [ ] Compare the token stream of each grammar with the reference runtime
+- [x] Implement `TSLexer` in `src/lexer.zig`: UTF-8 decode, byte, row and column positions
+- [x] Compare the lex results of each grammar with the reference lexer at sampled positions and in each lex state
 
 ## Phase 3 — Parser core
 Tracking: [ISSUE-003](.okfw/issues/issue-003-parser-core-with-the-subtree-arena-and-the-glr-stack--01a1e96b8f58.md)

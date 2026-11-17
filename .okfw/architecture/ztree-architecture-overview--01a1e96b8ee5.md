@@ -29,7 +29,9 @@ This note describes the planned modules of ztree and the data flow of one parse.
 |---|---|---|
 | `src/root.zig` | Library root and hard limits. | 0 |
 | `src/abi.zig` | `extern struct` mirrors of `TSLanguage` (ABI 14 and 15), `TSLexer` and the parse actions. The only file with function pointers. | 1 |
-| `src/lexer.zig` | The `TSLexer` implementation: UTF-8 decode, byte, row and column positions. | 2 |
+| `src/utf8.zig` | UTF-8 decode with the ICU `U8_NEXT` rules. | 2 |
+| `src/length.zig` | `Point` and `Length`: byte, row and column positions. | 2 |
+| `src/lexer.zig` | The `TSLexer` implementation for one source buffer. | 2 |
 | `src/subtree.zig` | The arena of subtrees with hard limits. | 3 |
 | `src/stack.zig` | The GLR stack with at most 6 stack versions. | 3 |
 | `src/parser.zig` | The LR loop and the external scanner bridge. | 3 |

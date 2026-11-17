@@ -52,8 +52,7 @@ pub const Lexer = extern struct {
     get_column: *const fn (*Lexer) callconv(.c) u32, // nasa-lint: allow(R9) TSLexer ABI
     is_at_included_range_start: *const fn (*const Lexer) callconv(.c) bool, // nasa-lint: allow(R9) TSLexer ABI
     eof: *const fn (*const Lexer) callconv(.c) bool, // nasa-lint: allow(R9) TSLexer ABI
-    /// A C variadic logger. Phase 2 decides its type. It stays opaque here.
-    log: ?*const anyopaque,
+    log: *const fn (*const Lexer, [*:0]const u8, ...) callconv(.c) void, // nasa-lint: allow(R9) TSLexer ABI
 };
 
 pub const ParseActionType = enum(u8) {

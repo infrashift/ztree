@@ -5,6 +5,9 @@ const std = @import("std");
 
 pub const abi = @import("abi.zig");
 pub const grammars = @import("grammars.zig");
+pub const length = @import("length.zig");
+pub const lexer = @import("lexer.zig");
+pub const utf8 = @import("utf8.zig");
 
 /// Hard limits for one parse. A parse that reaches a limit returns an error.
 pub const limits = struct {

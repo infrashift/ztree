@@ -12,6 +12,8 @@ const grammar_sources = [_][]const u8{
 };
 
 const c_flags = [_][]const u8{"-std=c11"};
+/// The reference runtime and the shim over it need POSIX and BSD declarations.
+const oracle_flags = [_][]const u8{ "-std=c11", "-D_POSIX_C_SOURCE=200112L", "-D_DEFAULT_SOURCE" };
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
@@ -36,7 +38,7 @@ pub fn build(b: *std.Build) void {
     });
     oracle.root_module.addCSourceFile(.{
         .file = b.path("third_party/tree-sitter/lib/src/lib.c"),
-        .flags = &.{ "-std=c11", "-D_POSIX_C_SOURCE=200112L", "-D_DEFAULT_SOURCE" },
+        .flags = &oracle_flags,
     });
     oracle.root_module.addIncludePath(b.path("third_party/tree-sitter/lib/include"));
     oracle.root_module.addIncludePath(b.path("third_party/tree-sitter/lib/src"));
@@ -56,4 +58,33 @@ pub fn build(b: *std.Build) void {
     abi_mod.addCSourceFile(.{ .file = b.path("tests/abi14_probe.c"), .flags = &c_flags });
     abi_mod.linkLibrary(oracle);
     test_step.dependOn(&b.addRunArtifact(b.addTest(.{ .root_module = abi_mod })).step);
+
+    const lexer_mod = b.createModule(.{
+        .root_source_file = b.path("tests/lexer_test.zig"),
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+        .imports = &.{.{ .name = "ztree", .module = mod }},
+    });
+    lexer_mod.addCSourceFile(.{ .file = b.path("tests/ref_shim.c"), .flags = &oracle_flags });
+    lexer_mod.addIncludePath(b.path("third_party/tree-sitter/lib/include"));
+    lexer_mod.addIncludePath(b.path("third_party/tree-sitter/lib/src"));
+    lexer_mod.linkLibrary(oracle);
+    for (lexer_samples) |sample| {
+        lexer_mod.addAnonymousImport(sample[0], .{ .root_source_file = b.path(sample[1]) });
+    }
+    test_step.dependOn(&b.addRunArtifact(b.addTest(.{ .root_module = lexer_mod })).step);
 }
+
+/// Sample inputs of the lexer differential test (tests/lexer_test.zig).
+const lexer_samples = [_]struct { []const u8, []const u8 }{
+    .{ "go_declarations", "third_party/grammars/go/test/corpus/declarations.txt" },
+    .{ "go_expressions", "third_party/grammars/go/test/corpus/expressions.txt" },
+    .{ "python_statements", "third_party/grammars/python/test/corpus/statements.txt" },
+    .{ "python_expressions", "third_party/grammars/python/test/corpus/expressions.txt" },
+    .{ "c_declarations", "third_party/grammars/c/test/corpus/declarations.txt" },
+    .{ "c_preprocessor", "third_party/grammars/c/test/corpus/preprocessor.txt" },
+    .{ "rust_declarations", "third_party/grammars/rust/test/corpus/declarations.txt" },
+    .{ "rust_literals", "third_party/grammars/rust/test/corpus/literals.txt" },
+    .{ "zig_lexer", "src/lexer.zig" },
+};
