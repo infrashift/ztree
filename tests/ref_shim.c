@@ -78,3 +78,92 @@ void ztree_ref_lex(const TSLanguage *lang, const char *src, uint32_t len, Length
   out->token_end = lexer.token_end_position;
   ts_lexer_delete(&lexer);
 }
+
+// ----- Parse dumps for tests/parser_test.zig -----
+#include "tree.h"
+#include "subtree.h"
+#include "tree_sitter/api.h"
+
+typedef struct {
+  uint16_t symbol;
+  uint16_t parse_state;
+  uint16_t production_id;
+  uint16_t flags;
+  Length padding;
+  Length size;
+  uint32_t lookahead_bytes;
+  uint32_t child_count;
+  uint32_t error_cost;
+  int32_t dynamic_precedence;
+  uint32_t visible_child_count;
+  uint32_t named_child_count;
+  uint32_t visible_descendant_count;
+} ZtreeNodeRecord;
+
+static bool is_repetition(Subtree t) {
+  return ts_subtree_child_count(t) > 0 && !ts_subtree_visible(t) && !ts_subtree_named(t);
+}
+
+// The number of children of `t` after the flattening of repetition nodes.
+static uint32_t flat_child_count(Subtree t) {
+  uint32_t n = 0;
+  for (uint32_t i = 0; i < ts_subtree_child_count(t); i++) {
+    Subtree c = ts_subtree_children(t)[i];
+    n += is_repetition(c) ? flat_child_count(c) : 1;
+  }
+  return n;
+}
+
+static void dump(Subtree t, ZtreeNodeRecord *out, uint32_t cap, uint32_t *n);
+
+static void dump_children(Subtree t, ZtreeNodeRecord *out, uint32_t cap, uint32_t *n) {
+  for (uint32_t i = 0; i < ts_subtree_child_count(t); i++) {
+    Subtree c = ts_subtree_children(t)[i];
+    if (is_repetition(c)) dump_children(c, out, cap, n);
+    else dump(c, out, cap, n);
+  }
+}
+
+static void dump(Subtree t, ZtreeNodeRecord *out, uint32_t cap, uint32_t *n) {
+  if (*n < cap) {
+    uint16_t flags =
+      ts_subtree_visible(t) | ts_subtree_named(t) << 1 | ts_subtree_extra(t) << 2 |
+      ts_subtree_missing(t) << 3 | ts_subtree_is_keyword(t) << 4 |
+      ts_subtree_fragile_left(t) << 5 | ts_subtree_fragile_right(t) << 6 |
+      ts_subtree_depends_on_column(t) << 7 | ts_subtree_has_external_tokens(t) << 8;
+    bool parent = ts_subtree_child_count(t) > 0;
+    out[*n] = (ZtreeNodeRecord){
+      .symbol = ts_subtree_symbol(t),
+      .parse_state = ts_subtree_parse_state(t),
+      .production_id = ts_subtree_production_id(t),
+      .flags = flags,
+      .padding = ts_subtree_padding(t),
+      .size = ts_subtree_size(t),
+      .lookahead_bytes = ts_subtree_lookahead_bytes(t),
+      .child_count = flat_child_count(t),
+      .error_cost = ts_subtree_error_cost(t),
+      .dynamic_precedence = ts_subtree_dynamic_precedence(t),
+      .visible_child_count = ts_subtree_visible_child_count(t),
+      .named_child_count = parent ? t.ptr->named_child_count : 0,
+      .visible_descendant_count = ts_subtree_visible_descendant_count(t),
+    };
+  }
+  (*n)++;
+  dump_children(t, out, cap, n);
+}
+
+// Parse `src` with the reference runtime and write the flattened pre-order
+// records of the tree. Return the number of records. `has_error` reports an
+// error cost above 0.
+uint32_t ztree_ref_parse_dump(const TSLanguage *lang, const char *src, uint32_t len,
+                              ZtreeNodeRecord *out, uint32_t cap, bool *has_error) {
+  TSParser *parser = ts_parser_new();
+  ts_parser_set_language(parser, lang);
+  TSTree *tree = ts_parser_parse_string(parser, NULL, src, len);
+  uint32_t n = 0;
+  *has_error = ts_subtree_error_cost(tree->root) > 0;
+  dump(tree->root, out, cap, &n);
+  ts_tree_delete(tree);
+  ts_parser_delete(parser);
+  return n;
+}

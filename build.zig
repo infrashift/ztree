@@ -74,6 +74,33 @@ pub fn build(b: *std.Build) void {
         lexer_mod.addAnonymousImport(sample[0], .{ .root_source_file = b.path(sample[1]) });
     }
     test_step.dependOn(&b.addRunArtifact(b.addTest(.{ .root_module = lexer_mod })).step);
+
+    const parser_mod = b.createModule(.{
+        .root_source_file = b.path("tests/parser_test.zig"),
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+        .imports = &.{.{ .name = "ztree", .module = mod }},
+    });
+    parser_mod.addCSourceFile(.{ .file = b.path("tests/ref_shim.c"), .flags = &oracle_flags });
+    parser_mod.addIncludePath(b.path("third_party/tree-sitter/lib/include"));
+    parser_mod.addIncludePath(b.path("third_party/tree-sitter/lib/src"));
+    parser_mod.linkLibrary(oracle);
+    const sample_options = b.addOptions();
+    var langs: [parser_samples.len][]const u8 = undefined;
+    var kinds: [parser_samples.len][]const u8 = undefined;
+    var paths: [parser_samples.len][]const u8 = undefined;
+    for (parser_samples, 0..) |sample, i| {
+        langs[i] = sample[0];
+        kinds[i] = sample[1];
+        paths[i] = sample[2];
+        parser_mod.addAnonymousImport(sample[2], .{ .root_source_file = b.path(sample[2]) });
+    }
+    sample_options.addOption([]const []const u8, "langs", &langs);
+    sample_options.addOption([]const []const u8, "kinds", &kinds);
+    sample_options.addOption([]const []const u8, "paths", &paths);
+    parser_mod.addOptions("samples", sample_options);
+    test_step.dependOn(&b.addRunArtifact(b.addTest(.{ .root_module = parser_mod })).step);
 }
 
 /// Sample inputs of the lexer differential test (tests/lexer_test.zig).
@@ -87,4 +114,53 @@ const lexer_samples = [_]struct { []const u8, []const u8 }{
     .{ "rust_declarations", "third_party/grammars/rust/test/corpus/declarations.txt" },
     .{ "rust_literals", "third_party/grammars/rust/test/corpus/literals.txt" },
     .{ "zig_lexer", "src/lexer.zig" },
+};
+
+/// Inputs of the parser differential test (tests/parser_test.zig): grammar, kind, path.
+const parser_samples = [_]struct { []const u8, []const u8, []const u8 }{
+    .{ "go", "corpus", "third_party/grammars/go/test/corpus/declarations.txt" },
+    .{ "go", "corpus", "third_party/grammars/go/test/corpus/errors.txt" },
+    .{ "go", "corpus", "third_party/grammars/go/test/corpus/expressions.txt" },
+    .{ "go", "corpus", "third_party/grammars/go/test/corpus/literals.txt" },
+    .{ "go", "corpus", "third_party/grammars/go/test/corpus/source_files.txt" },
+    .{ "go", "corpus", "third_party/grammars/go/test/corpus/statements.txt" },
+    .{ "go", "corpus", "third_party/grammars/go/test/corpus/types.txt" },
+    .{ "python", "corpus", "third_party/grammars/python/test/corpus/errors.txt" },
+    .{ "python", "corpus", "third_party/grammars/python/test/corpus/expressions.txt" },
+    .{ "python", "corpus", "third_party/grammars/python/test/corpus/literals.txt" },
+    .{ "python", "corpus", "third_party/grammars/python/test/corpus/pattern_matching.txt" },
+    .{ "python", "corpus", "third_party/grammars/python/test/corpus/statements.txt" },
+    .{ "c", "corpus", "third_party/grammars/c/test/corpus/ambiguities.txt" },
+    .{ "c", "corpus", "third_party/grammars/c/test/corpus/crlf.txt" },
+    .{ "c", "corpus", "third_party/grammars/c/test/corpus/declarations.txt" },
+    .{ "c", "corpus", "third_party/grammars/c/test/corpus/expressions.txt" },
+    .{ "c", "corpus", "third_party/grammars/c/test/corpus/microsoft.txt" },
+    .{ "c", "corpus", "third_party/grammars/c/test/corpus/preprocessor.txt" },
+    .{ "c", "corpus", "third_party/grammars/c/test/corpus/statements.txt" },
+    .{ "c", "corpus", "third_party/grammars/c/test/corpus/types.txt" },
+    .{ "rust", "corpus", "third_party/grammars/rust/test/corpus/async.txt" },
+    .{ "rust", "corpus", "third_party/grammars/rust/test/corpus/declarations.txt" },
+    .{ "rust", "corpus", "third_party/grammars/rust/test/corpus/error.txt" },
+    .{ "rust", "corpus", "third_party/grammars/rust/test/corpus/expressions.txt" },
+    .{ "rust", "corpus", "third_party/grammars/rust/test/corpus/literals.txt" },
+    .{ "rust", "corpus", "third_party/grammars/rust/test/corpus/macros.txt" },
+    .{ "rust", "corpus", "third_party/grammars/rust/test/corpus/patterns.txt" },
+    .{ "rust", "corpus", "third_party/grammars/rust/test/corpus/source_files.txt" },
+    .{ "rust", "corpus", "third_party/grammars/rust/test/corpus/types.txt" },
+    .{ "zig", "file", "src/abi.zig" },
+    .{ "zig", "file", "src/grammars.zig" },
+    .{ "zig", "file", "src/language.zig" },
+    .{ "zig", "file", "src/length.zig" },
+    .{ "zig", "file", "src/lexer.zig" },
+    .{ "zig", "file", "src/parser.zig" },
+    .{ "zig", "file", "src/root.zig" },
+    .{ "zig", "file", "src/stack.zig" },
+    .{ "zig", "file", "src/subtree.zig" },
+    .{ "zig", "file", "src/utf8.zig" },
+    .{ "c", "file", "third_party/grammars/python/src/scanner.c" },
+    .{ "c", "file", "third_party/grammars/rust/src/scanner.c" },
+    .{ "c", "file", "third_party/tree-sitter/lib/src/stack.c" },
+    .{ "c", "file", "tests/ref_shim.c" },
+    .{ "python", "file", "scripts/nasa-lint.py" },
+    .{ "python", "file", "scripts/ste-check.py" },
 };

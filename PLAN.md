@@ -7,7 +7,7 @@ Work on one phase at a time (`CLAUDE.md` rule 1). Each phase from 1 to 7 has a m
 Loop: implement one task, run `zmake check`, and repeat until green. Then update the wiki and commit once per phase.
 
 - Architecture: [ztree architecture overview](.okfw/architecture/ztree-architecture-overview--01a1e96b8ee5.md)
-- Decisions: [ADR-0001 wiki](.okfw/decisions/adr-0001-adopt-an-okf-wiki-okfw-for-project-knowledge--01a1e96b8ef6.md) · [ADR-0002 toolchain](.okfw/decisions/adr-0002-zig-0-17-1-the-standard-library-and-vendored-c-grammars--01a1e96b8f06.md) · [ADR-0003 Power of 10](.okfw/decisions/adr-0003-adapt-the-nasa-power-of-10-rules-to-ztree--01a1e96b8f17.md) · [ADR-0004 scope](.okfw/decisions/adr-0004-a-batch-tree-sitter-runtime-for-abi-14-and-15--01a1e96b8f27.md)
+- Decisions: [ADR-0001 wiki](.okfw/decisions/adr-0001-adopt-an-okf-wiki-okfw-for-project-knowledge--01a1e96b8ef6.md) · [ADR-0002 toolchain](.okfw/decisions/adr-0002-zig-0-17-1-the-standard-library-and-vendored-c-grammars--01a1e96b8f06.md) · [ADR-0003 Power of 10](.okfw/decisions/adr-0003-adapt-the-nasa-power-of-10-rules-to-ztree--01a1e96b8f17.md) · [ADR-0004 scope](.okfw/decisions/adr-0004-a-batch-tree-sitter-runtime-for-abi-14-and-15--01a1e96b8f27.md) · [ADR-0005 arena](.okfw/decisions/adr-0005-one-arena-per-parse-no-reference-counts-and-no-balance-step--01a1ebbb7488.md)
 - Rules: ADR-0003 for the code. ASD-STE100 for all documentation.
 
 ## Phase 0 — Bootstrap
@@ -32,14 +32,15 @@ Tracking: [ISSUE-002](.okfw/issues/issue-002-lexer-bridge-for-the-lex-function-a
 
 ## Phase 3 — Parser core
 Tracking: [ISSUE-003](.okfw/issues/issue-003-parser-core-with-the-subtree-arena-and-the-glr-stack--01a1e96b8f58.md)
-- [ ] Add the subtree arena (`src/subtree.zig`) and the GLR stack (`src/stack.zig`)
-- [ ] Add the LR loop and the external scanner bridge (`src/parser.zig`)
-- [ ] Parse valid sample files of each grammar with no ERROR node
+- [x] Add the subtree arena (`src/subtree.zig`) and the GLR stack (`src/stack.zig`)
+- [x] Add the LR loop and the external scanner bridge (`src/parser.zig`)
+- [x] Parse valid sample files of each grammar with no ERROR node
 
 ## Phase 4 — Error recovery
+Phase 3 delivers this phase: the reference runtime runs its recovery code for valid input too.
 Tracking: [ISSUE-004](.okfw/issues/issue-004-error-recovery-with-error-and-missing-nodes--01a1e96b8f69.md)
-- [ ] Add ERROR and MISSING nodes and token skips (`src/recover.zig`)
-- [ ] Match the trees of the reference runtime for invalid sample files
+- [x] Add ERROR and MISSING nodes and token skips (`src/recover.zig`)
+- [x] Match the trees of the reference runtime for invalid sample files
 
 ## Phase 5 — Tree API and comments
 Tracking: [ISSUE-005](.okfw/issues/issue-005-tree-api-cursor-and-comment-extraction--01a1e96b8f79.md)

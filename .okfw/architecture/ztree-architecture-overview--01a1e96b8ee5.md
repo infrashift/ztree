@@ -32,10 +32,11 @@ This note describes the planned modules of ztree and the data flow of one parse.
 | `src/utf8.zig` | UTF-8 decode with the ICU `U8_NEXT` rules. | 2 |
 | `src/length.zig` | `Point` and `Length`: byte, row and column positions. | 2 |
 | `src/lexer.zig` | The `TSLexer` implementation for one source buffer. | 2 |
-| `src/subtree.zig` | The arena of subtrees with hard limits. | 3 |
-| `src/stack.zig` | The GLR stack with at most 6 stack versions. | 3 |
+| `src/language.zig` | Parse table lookups and the lookahead iterator. | 3 |
+| `src/subtree.zig` | Subtrees in the parse arena, with no reference counts (ADR-0005). | 3 |
+| `src/stack.zig` | The GLR stack. The parser keeps at most 6 versions after each round. | 3 |
 | `src/parser.zig` | The LR loop and the external scanner bridge. | 3 |
-| `src/recover.zig` | Error recovery. | 4 |
+| `src/recover.zig` | Error recovery. Valid input uses it too. | 3 |
 | `src/tree.zig` | Nodes, the cursor and S-expression output. | 5 |
 | `src/comments.zig` | Comment node types per language and span extraction. | 5 |
 | `src/capi.zig` | The exported C ABI. | 7 |

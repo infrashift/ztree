@@ -242,6 +242,7 @@ pub const Lexer = struct {
     fn markEndCallback(data: *abi.Lexer) callconv(.c) void {
         const self = fromData(data);
         assert(self.token_start_position.bytes <= self.current_position.bytes);
+        assert(!length.isUndefined(self.current_position));
         self.markEnd();
     }
 
@@ -278,6 +279,7 @@ pub const Lexer = struct {
     fn isAtIncludedRangeStart(data: *const abi.Lexer) callconv(.c) bool {
         const self = fromConstData(data);
         assert(self.chunk_size <= self.source.len);
+        assert(self.current_position.bytes >= self.chunk_start or self.chunk_size == 0);
         return !self.at_eof and self.current_position.bytes == 0;
     }
 
