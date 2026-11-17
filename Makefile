@@ -1,0 +1,36 @@
+# ztree development gates. Plain GNU Make syntax. The ZMakefile has the same targets.
+
+ZIG ?= zig
+PYTHON ?= python3
+ZIG_SOURCES := build.zig build.zig.zon src
+
+.PHONY: check build test lint fmt wiki docs-style
+
+## check: run every gate (the default goal)
+check: lint test wiki docs-style
+
+## build: compile the library into zig-out
+build:
+	$(ZIG) build
+
+## test: run the unit tests
+test:
+	$(ZIG) build test --summary all
+
+## lint: check the formatting and the Power of 10 rules
+lint:
+	$(ZIG) fmt --check $(ZIG_SOURCES)
+	$(PYTHON) -I scripts/nasa-lint.py
+
+## fmt: format the Zig sources in place
+fmt:
+	$(ZIG) fmt $(ZIG_SOURCES)
+
+## wiki: validate the OKF wiki
+wiki:
+	okfw validate --all
+	okfw validate --okf
+
+## docs-style: check the documentation against ASD-STE100 rules
+docs-style:
+	$(PYTHON) -I scripts/ste-check.py
