@@ -4,6 +4,7 @@
 const std = @import("std");
 
 pub const abi = @import("abi.zig");
+pub const comments = @import("comments.zig");
 pub const grammars = @import("grammars.zig");
 pub const length = @import("length.zig");
 pub const language = @import("language.zig");
@@ -12,6 +13,7 @@ pub const parser = @import("parser.zig");
 pub const recover = @import("recover.zig");
 pub const stack = @import("stack.zig");
 pub const subtree = @import("subtree.zig");
+pub const tree = @import("tree.zig");
 pub const utf8 = @import("utf8.zig");
 
 /// Hard limits for one parse. A parse that reaches a limit returns an error.

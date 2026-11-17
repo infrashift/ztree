@@ -44,8 +44,8 @@ Tracking: [ISSUE-004](.okfw/issues/issue-004-error-recovery-with-error-and-missi
 
 ## Phase 5 — Tree API and comments
 Tracking: [ISSUE-005](.okfw/issues/issue-005-tree-api-cursor-and-comment-extraction--01a1e96b8f79.md)
-- [ ] Add nodes, the iterative cursor and S-expression output (`src/tree.zig`)
-- [ ] Add comment node types per language and `extractComments` (`src/comments.zig`)
+- [x] Add nodes, the iterative cursor and S-expression output (`src/tree.zig`)
+- [x] Add comment node types per language and `extractComments` (`src/comments.zig`)
 
 ## Phase 6 — Conformance
 Tracking: [ISSUE-006](.okfw/issues/issue-006-conformance-with-grammar-corpus-tests-and-the-reference-runtime--01a1e96b8f8a.md)

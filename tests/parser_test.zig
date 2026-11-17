@@ -26,6 +26,35 @@ const NodeRecord = extern struct {
     visible_descendant_count: u32,
 };
 
+extern fn ztree_ref_sexp(lang: *const abi.Language14, src: [*]const u8, len: u32, out: [*]u8, cap: u32) u32;
+extern fn ztree_ref_comments(lang: *const abi.Language14, src: [*]const u8, len: u32, kinds: [*]const [*:0]const u8, kind_count: u32, out: [*]ztree.comments.Span, cap: u32) u32;
+
+const Visit = extern struct { type: [*:0]const u8, start_byte: u32, end_byte: u32, named: bool };
+extern fn ztree_ref_nodes(lang: *const abi.Language14, src: [*]const u8, len: u32, out: [*]Visit, cap: u32) u32;
+
+/// Compare the walker with a TSTreeCursor walk: type, byte range and named flag.
+fn compareWalk(arena: std.mem.Allocator, lang: *const abi.Language14, name: []const u8, text: []const u8, root: *const Subtree) !void {
+    const ref = try arena.alloc(Visit, 1 << 20);
+    const n = ztree_ref_nodes(lang, text.ptr, @intCast(text.len), ref.ptr, @intCast(ref.len));
+    try std.testing.expect(n <= ref.len);
+    var walker = ztree.tree.Walker.init(arena, lang, root);
+    var i: usize = 0;
+    while (try walker.next()) |node| : (i += 1) {
+        if (i >= n) break;
+        const r = ref[i];
+        const same = std.mem.eql(u8, std.mem.span(r.type), node.kind(lang)) and r.start_byte == node.start().bytes and
+            r.end_byte == node.end().bytes and r.named == node.isNamed(lang);
+        if (!same) {
+            std.debug.print("{s}: node {d} differs: ref {s} {d}..{d} named={}, ztree {s} {d}..{d} named={}\n", .{ name, i, r.type, r.start_byte, r.end_byte, r.named, node.kind(lang), node.start().bytes, node.end().bytes, node.isNamed(lang) });
+            return error.TestUnexpectedResult;
+        }
+    }
+    if (i != n) {
+        std.debug.print("{s}: ref visits {d} nodes, ztree visits {d} or more\n", .{ name, n, i });
+        return error.TestUnexpectedResult;
+    }
+}
+
 extern fn ztree_ref_parse_dump(lang: *const abi.Language14, src: [*]const u8, len: u32, out: [*]NodeRecord, cap: u32, has_error: *bool) u32;
 
 fn flatChildCount(t: *const Subtree) u32 {
@@ -67,7 +96,39 @@ fn dumpChildren(t: *const Subtree, out: *std.ArrayList(NodeRecord), gpa: std.mem
     }
 }
 
-const Totals = struct { compared: usize = 0, with_errors: usize = 0 };
+const Totals = struct { compared: usize = 0, with_errors: usize = 0, comments: usize = 0 };
+
+/// Compare the S-expression of `root` with `ts_node_string` of the reference.
+fn compareSexp(gpa: std.mem.Allocator, arena: std.mem.Allocator, lang: *const abi.Language14, name: []const u8, text: []const u8, root: *const Subtree) !void {
+    var ours: std.Io.Writer.Allocating = .init(gpa);
+    defer ours.deinit();
+    try ztree.tree.writeSexp(arena, lang, root, &ours.writer);
+    const buf = try gpa.alloc(u8, 1 << 22);
+    defer gpa.free(buf);
+    const n = ztree_ref_sexp(lang, text.ptr, @intCast(text.len), buf.ptr, @intCast(buf.len));
+    try std.testing.expect(n <= buf.len);
+    if (!std.mem.eql(u8, buf[0..n], ours.written())) {
+        std.debug.print("{s}: S-expression differs\n ref   {s}\n ztree {s}\n", .{ name, buf[0..@min(n, 400)], ours.written()[0..@min(ours.written().len, 400)] });
+        return error.TestUnexpectedResult;
+    }
+}
+
+/// Compare the comment spans with a cursor walk of the reference tree.
+fn compareComments(arena: std.mem.Allocator, lang_enum: grammars.Lang, name: []const u8, text: []const u8, root: *const Subtree) !usize {
+    const lang = grammars.language(lang_enum);
+    const kinds = ztree.comments.commentKinds(lang_enum);
+    var kind_ptrs: [4][*:0]const u8 = undefined;
+    for (kinds, 0..) |k, i| kind_ptrs[i] = (try arena.dupeSentinel(u8, k, 0)).ptr;
+    const ref = try arena.alloc(ztree.comments.Span, 1 << 16);
+    const ours = try arena.alloc(ztree.comments.Span, 1 << 16);
+    const n_ref = ztree_ref_comments(lang, text.ptr, @intCast(text.len), &kind_ptrs, @intCast(kinds.len), ref.ptr, @intCast(ref.len));
+    const n_ours = try ztree.comments.extractFromTree(arena, lang, root, kinds, ours);
+    if (n_ref != n_ours or !std.mem.eql(u8, std.mem.sliceAsBytes(ref[0..n_ref]), std.mem.sliceAsBytes(ours[0..n_ours]))) {
+        std.debug.print("{s}: comments differ: ref {d}, ztree {d}\n", .{ name, n_ref, n_ours });
+        return error.TestUnexpectedResult;
+    }
+    return n_ours;
+}
 
 /// Parse `text` with both runtimes and compare the dumps.
 fn check(lang_name: []const u8, name: []const u8, text: []const u8, totals: *Totals) !void {
@@ -90,6 +151,9 @@ fn check(lang_name: []const u8, name: []const u8, text: []const u8, totals: *Tot
     defer ours.deinit(gpa);
     try dump(root, &ours, gpa);
     try compareDumps(lang, lang_name, name, ref[0..n], ours.items);
+    try compareSexp(gpa, arena_state.allocator(), lang, name, text, root);
+    try compareWalk(arena_state.allocator(), lang, name, text, root);
+    totals.comments += try compareComments(arena_state.allocator(), std.meta.stringToEnum(grammars.Lang, lang_name).?, name, text, root);
     totals.compared += 1;
 }
 
@@ -147,6 +211,7 @@ const extra_inputs = [_]struct { []const u8, []const u8 }{
     .{ "python", "def f(:\n  return )\nx = [1, 2\nprint 'a'\n" },
     .{ "go", "package p\nvar new, make, len = 1, 2, 3\nfunc f() { x.type = 1; type T int; go := 1 }\n" },
     .{ "go", "package p\nfunc f( { return }\nvar x = \n" },
+    .{ "go", "package p\nvar _ = x./* c */foo\nvar _ = T{ /* c */ a: 1 }\n" },
     .{ "c", "int bool, true, nullptr, auto_x; struct s { int default; } x; y = sizeof(int) + alignof;\n" },
     .{ "c", "int f( { return; }\nstruct { int x }\n" },
     .{ "rust", "fn f() { let union = 1; let default = 2; let auto = 3; union.x = default.y; macro_rules = 4; r#type = 5; }\n" },
@@ -176,7 +241,7 @@ test "parser matches the reference runtime on corpus inputs and source files" {
             try check(samples.langs[s], path, text, &totals);
         }
     }
-    std.debug.print("parser differential: {d} trees match, {d} of them with errors\n", .{ totals.compared, totals.with_errors });
+    std.debug.print("parser differential: {d} trees match, {d} of them with errors, {d} comments\n", .{ totals.compared, totals.with_errors, totals.comments });
     // 436 inputs on 2026-11-17: a drop means the corpus split lost examples.
     try std.testing.expect(totals.compared >= 436);
     try std.testing.expect(totals.with_errors > 0);

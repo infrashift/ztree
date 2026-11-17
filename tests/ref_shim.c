@@ -167,3 +167,89 @@ uint32_t ztree_ref_parse_dump(const TSLanguage *lang, const char *src, uint32_t 
   ts_parser_delete(parser);
   return n;
 }
+
+// ----- S-expressions and comment spans for tests/parser_test.zig -----
+#include <string.h>
+
+// Write ts_node_string of the root to `out`. Return the full length.
+uint32_t ztree_ref_sexp(const TSLanguage *lang, const char *src, uint32_t len, char *out, uint32_t cap) {
+  TSParser *parser = ts_parser_new();
+  ts_parser_set_language(parser, lang);
+  TSTree *tree = ts_parser_parse_string(parser, NULL, src, len);
+  char *s = ts_node_string(ts_tree_root_node(tree));
+  uint32_t n = (uint32_t)strlen(s);
+  memcpy(out, s, n < cap ? n : cap);
+  free(s);
+  ts_tree_delete(tree);
+  ts_parser_delete(parser);
+  return n;
+}
+
+typedef struct {
+  uint32_t start_byte, end_byte, start_row, start_column, end_row, end_column;
+} ZtreeSpan;
+
+static bool is_kind(const char *type, const char *const *kinds, uint32_t kind_count) {
+  for (uint32_t i = 0; i < kind_count; i++) if (strcmp(type, kinds[i]) == 0) return true;
+  return false;
+}
+
+// Walk the tree with a TSTreeCursor and write the span of each named node
+// whose type is in `kinds`, without entering it. Return the count.
+uint32_t ztree_ref_comments(const TSLanguage *lang, const char *src, uint32_t len,
+                            const char *const *kinds, uint32_t kind_count, ZtreeSpan *out, uint32_t cap) {
+  TSParser *parser = ts_parser_new();
+  ts_parser_set_language(parser, lang);
+  TSTree *tree = ts_parser_parse_string(parser, NULL, src, len);
+  TSTreeCursor cursor = ts_tree_cursor_new(ts_tree_root_node(tree));
+  uint32_t n = 0;
+  for (;;) {
+    TSNode node = ts_tree_cursor_current_node(&cursor);
+    bool hit = ts_node_is_named(node) && is_kind(ts_node_type(node), kinds, kind_count);
+    if (hit) {
+      if (n < cap) {
+        TSPoint s = ts_node_start_point(node), e = ts_node_end_point(node);
+        out[n] = (ZtreeSpan){ts_node_start_byte(node), ts_node_end_byte(node), s.row, s.column, e.row, e.column};
+      }
+      n++;
+    }
+    if (!hit && ts_tree_cursor_goto_first_child(&cursor)) continue;
+    while (!ts_tree_cursor_goto_next_sibling(&cursor)) {
+      if (!ts_tree_cursor_goto_parent(&cursor)) goto done;
+    }
+  }
+done:
+  ts_tree_cursor_delete(&cursor);
+  ts_tree_delete(tree);
+  ts_parser_delete(parser);
+  return n;
+}
+
+typedef struct {
+  const char *type;
+  uint32_t start_byte, end_byte;
+  bool named;
+} ZtreeVisit;
+
+// Write each node that a TSTreeCursor visits in pre-order. Return the count.
+uint32_t ztree_ref_nodes(const TSLanguage *lang, const char *src, uint32_t len, ZtreeVisit *out, uint32_t cap) {
+  TSParser *parser = ts_parser_new();
+  ts_parser_set_language(parser, lang);
+  TSTree *tree = ts_parser_parse_string(parser, NULL, src, len);
+  TSTreeCursor cursor = ts_tree_cursor_new(ts_tree_root_node(tree));
+  uint32_t n = 0;
+  for (;;) {
+    TSNode node = ts_tree_cursor_current_node(&cursor);
+    if (n < cap) out[n] = (ZtreeVisit){ts_node_type(node), ts_node_start_byte(node), ts_node_end_byte(node), ts_node_is_named(node)};
+    n++;
+    if (ts_tree_cursor_goto_first_child(&cursor)) continue;
+    while (!ts_tree_cursor_goto_next_sibling(&cursor)) {
+      if (!ts_tree_cursor_goto_parent(&cursor)) goto done;
+    }
+  }
+done:
+  ts_tree_cursor_delete(&cursor);
+  ts_tree_delete(tree);
+  ts_parser_delete(parser);
+  return n;
+}
