@@ -4,7 +4,7 @@
 
 ZIG ?= zig
 PYTHON ?= python3
-ZIG_SOURCES := build.zig build.zig.zon src
+ZIG_SOURCES := build.zig build.zig.zon src tests
 
 ## check: run every gate (the default goal)
 @check: lint test wiki docs-style

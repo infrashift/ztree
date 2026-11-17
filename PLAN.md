@@ -20,10 +20,10 @@ Loop: implement one task, run `zmake check`, and repeat until green. Then update
 
 ## Phase 1 — Vendor and ABI
 Tracking: [ISSUE-001](.okfw/issues/issue-001-vendor-the-reference-runtime-and-the-grammars-and-mirror-the-c-abi--01a1e96b8f38.md)
-- [ ] Vendor the reference runtime and the five grammars at the pinned tags into `third_party/`
-- [ ] Compile each grammar in `build.zig` with the Zig C compiler
-- [ ] Mirror `TSLanguage` (ABI 14 and 15), `TSLexer`, `TSParseAction` and `TSLexMode` in `src/abi.zig`
-- [ ] Test each language: ABI version, symbol count and state count
+- [x] Vendor the reference runtime and the five grammars at the pinned tags into `third_party/`
+- [x] Compile each grammar in `build.zig` with the Zig C compiler
+- [x] Mirror `TSLanguage` (ABI 14 and 15), `TSLexer`, `TSParseAction` and `TSLexMode` in `src/abi.zig`
+- [x] Test each language: ABI version, symbol count and state count
 
 ## Phase 2 — Lexer bridge
 Tracking: [ISSUE-002](.okfw/issues/issue-002-lexer-bridge-for-the-lex-function-and-the-external-scanners--01a1e96b8f48.md)

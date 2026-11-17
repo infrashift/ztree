@@ -2,7 +2,7 @@
 
 ZIG ?= zig
 PYTHON ?= python3
-ZIG_SOURCES := build.zig build.zig.zon src
+ZIG_SOURCES := build.zig build.zig.zon src tests
 
 .PHONY: check build test lint fmt wiki docs-style
 

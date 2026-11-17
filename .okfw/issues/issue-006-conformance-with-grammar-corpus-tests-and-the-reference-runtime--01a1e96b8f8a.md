@@ -28,6 +28,7 @@ Compare ztree with the grammar corpus tests and with the reference runtime.
 - [ ] `zmake check` reports zero errors and zero warnings.
 
 ## Notes
+tree-sitter-zig v1.1.2 has no `test/corpus/` directory. For Zig, only the differential step applies.
 Record each corpus test that ztree skips, and the reason, in this issue.
 
 ## Related

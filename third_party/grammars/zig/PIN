@@ -1,0 +1,7 @@
+repo: https://github.com/tree-sitter-grammars/tree-sitter-zig
+tag: v1.1.2
+commit: b670c8df85a1568f498aa5c8cae42f51a90473c0
+abi: 14
+vendored: 2026-11-17
+paths: src/ LICENSE
+local changes: none

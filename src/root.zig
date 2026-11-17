@@ -3,6 +3,9 @@
 
 const std = @import("std");
 
+pub const abi = @import("abi.zig");
+pub const grammars = @import("grammars.zig");
+
 /// Hard limits for one parse. A parse that reaches a limit returns an error.
 pub const limits = struct {
     /// The largest source text that one parse accepts.
@@ -14,4 +17,8 @@ pub const limits = struct {
 test "limits are positive" {
     try std.testing.expect(limits.max_source_bytes > 0);
     try std.testing.expect(limits.max_stack_versions > 0);
+}
+
+test {
+    std.testing.refAllDecls(@This());
 }
