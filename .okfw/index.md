@@ -12,6 +12,7 @@ okf_version: "0.2"
 * [daily/](daily/)
 * [decisions/](decisions/)
 * [issues/](issues/)
+* [specs/](specs/)
 
 ## Concepts
 

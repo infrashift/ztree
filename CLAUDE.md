@@ -9,7 +9,9 @@ ztree is a batch Tree-sitter runtime in Zig. It follows the NASA Power of 10 rul
 - **Wiki:** okfw (`.okfw/`), [ADR-0001](.okfw/decisions/adr-0001-adopt-an-okf-wiki-okfw-for-project-knowledge--01a1e96b8ef6.md). See the okfw block below.
 
 ## Layout
-- `src/root.zig` is the library root. It holds the hard limits.
+- `src/root.zig` is the root of the Zig module. It holds the hard limits.
+- `src/capi.zig` is the root of `libztree.a`. `include/ztree.h` declares its C ABI ([spec](.okfw/specs/ztree-c-abi--01a1ec92dc4f.md)).
+- `bindings/go/` holds the Go binding: a separate Go module that links `zig-out/lib/libztree.a`.
 - `src/` holds the runtime modules. The [architecture overview](.okfw/architecture/ztree-architecture-overview--01a1e96b8ee5.md) lists them.
 - `third_party/` holds vendored C source. Do not edit it.
 - `scripts/` holds the lint scripts from zmake: `nasa-lint.py` (Power of 10) and `ste-check.py` (ASD-STE100). Do not change them.
@@ -23,6 +25,8 @@ Run these targets with `zmake`:
 - `zmake conformance` checks each grammar corpus example against its expected tree.
 - `zmake differential` parses the source files of this repository with ztree and the reference runtime. For other directories, run `zig build differential --release -Ddiff-dirs=<dir>`.
 - `zmake build` runs `zig build`.
+- `zmake lib` writes `zig-out/lib/libztree.a` and `zig-out/include/ztree.h` (ReleaseSafe).
+- `zmake go` runs `zmake lib`, then checks the Go binding with gofmt, `go vet` and `go test -race`.
 - `zmake wiki` runs `okfw validate --all` and `okfw validate --okf`.
 - `zmake docs-style` runs `scripts/ste-check.py`.
 - `zmake check` runs all of the gates above. It is the default goal.

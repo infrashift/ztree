@@ -47,6 +47,41 @@ pub fn build(b: *std.Build) void {
     const mod_tests = b.addTest(.{ .root_module = mod });
     test_step.dependOn(&b.addRunArtifact(mod_tests).step);
 
+    // The C ABI (ISSUE-007): `zig build lib` writes `zig-out/lib/libztree.a`
+    // and `zig-out/include/ztree.h`. The library holds the grammars and needs
+    // only libc. Position-independent code lets cgo link it into a PIE.
+    const capi_mod = b.createModule(.{
+        .root_source_file = b.path("src/capi.zig"),
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+        .pic = true,
+    });
+    for (grammar_sources) |src| {
+        capi_mod.addCSourceFile(.{ .file = b.path(src), .flags = &c_flags });
+    }
+    const lib = b.addLibrary(.{ .linkage = .static, .name = "ztree", .root_module = capi_mod });
+    lib.bundle_compiler_rt = true;
+    const lib_install = b.addInstallArtifact(lib, .{});
+    const header_install = b.addInstallFileWithDir(b.path("include/ztree.h"), .header, "ztree.h");
+    const lib_step = b.step("lib", "Write the static library and the C header to zig-out");
+    lib_step.dependOn(&lib_install.step);
+    lib_step.dependOn(&header_install.step);
+    b.getInstallStep().dependOn(lib_step);
+    test_step.dependOn(&b.addRunArtifact(b.addTest(.{ .root_module = capi_mod })).step);
+
+    // A C caller of the library through the installed header.
+    const capi_c = b.addExecutable(.{
+        .name = "capi_test",
+        .root_module = b.createModule(.{ .target = target, .optimize = optimize, .link_libc = true }),
+    });
+    capi_c.root_module.addCSourceFile(.{ .file = b.path("tests/capi_test.c"), .flags = &c_flags });
+    capi_c.root_module.addIncludePath(b.path("include"));
+    capi_c.root_module.linkLibrary(lib);
+    const capi_c_run = b.addRunArtifact(capi_c);
+    capi_c_run.expectExitCode(0);
+    test_step.dependOn(&capi_c_run.step);
+
     const abi_mod = b.createModule(.{
         .root_source_file = b.path("tests/abi_test.zig"),
         .target = target,

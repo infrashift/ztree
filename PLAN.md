@@ -60,6 +60,6 @@ Closed: [ISSUE-008](.okfw/issues/issue-008-zig-0-17-keywords-in-the-zig-grammar-
 
 ## Phase 7 — C ABI for Go
 Tracking: [ISSUE-007](.okfw/issues/issue-007-c-abi-and-static-library-for-go-callers--01a1e96b8f9a.md)
-- [ ] Write `libztree.a` and `include/ztree.h` with `zig build lib`
-- [ ] Export `ztree_extract_comments` with a bounded output buffer and no callbacks
-- [ ] Add a cgo smoke test in `examples/go/` and the C ABI spec
+- [x] Write `libztree.a` and `include/ztree.h` with `zig build lib`
+- [x] Export `ztree_extract_comments` with a bounded output buffer and no callbacks
+- [x] Add the Go binding in `bindings/go/` with its tests, and the C ABI spec

@@ -44,9 +44,10 @@ fn isCommentKind(name: []const u8, kinds: []const []const u8) bool {
     return false;
 }
 
-/// Write the spans of the named nodes of `root` whose type is in `kinds`.
-/// Return the number of spans.
-pub fn extractFromTree(arena: std.mem.Allocator, lang: *const abi.Language14, root: *const st.Subtree, kinds: []const []const u8, out: []Span) Error!usize {
+/// Write the spans of the named nodes of `root` whose type is in `kinds`, up
+/// to `out.len` spans. Return the number of such nodes in the tree. The
+/// number is more than `out.len` when `out` is too small.
+pub fn collectFromTree(arena: std.mem.Allocator, lang: *const abi.Language14, root: *const st.Subtree, kinds: []const []const u8, out: []Span) tree.Error!usize {
     assert(kinds.len > 0);
     var walker = tree.Walker.init(arena, lang, root);
     var count: usize = 0;
@@ -54,25 +55,45 @@ pub fn extractFromTree(arena: std.mem.Allocator, lang: *const abi.Language14, ro
     while (try walker.next()) |node| : (steps += 1) {
         assert(steps <= limits.max_subtrees);
         if (!node.isNamed(lang) or !isCommentKind(node.kind(lang), kinds)) continue;
-        if (count == out.len) return error.OutputTooSmall;
-        const s = node.start();
-        const e = node.end();
-        out[count] = .{ .start_byte = s.bytes, .end_byte = e.bytes, .start_row = s.extent.row, .start_column = s.extent.column, .end_row = e.extent.row, .end_column = e.extent.column };
+        if (count < out.len) {
+            const s = node.start();
+            const e = node.end();
+            out[count] = .{ .start_byte = s.bytes, .end_byte = e.bytes, .start_row = s.extent.row, .start_column = s.extent.column, .end_row = e.extent.row, .end_column = e.extent.column };
+        }
         count += 1;
         walker.skipChildren();
     }
+    assert(count <= steps);
+    return count;
+}
+
+/// Write the spans of the named nodes of `root` whose type is in `kinds`.
+/// Return the number of spans, or `error.OutputTooSmall`.
+pub fn extractFromTree(arena: std.mem.Allocator, lang: *const abi.Language14, root: *const st.Subtree, kinds: []const []const u8, out: []Span) Error!usize {
+    const count = try collectFromTree(arena, lang, root, kinds, out);
+    if (count > out.len) return error.OutputTooSmall;
     assert(count <= out.len);
     return count;
+}
+
+/// Parse `source` and write the spans of its first `out.len` comments to
+/// `out`. The arena holds the tree. Return the number of comments in the
+/// source, which can be more than `out.len`.
+pub fn collectComments(arena: std.mem.Allocator, lang: grammars.Lang, source: []const u8, out: []Span) (parser.Error || tree.Error)!usize {
+    const language = grammars.language(lang);
+    assert(out.len <= limits.max_subtrees);
+    const root = try parser.parse(arena, language, source);
+    assert(source.len <= limits.max_source_bytes);
+    return collectFromTree(arena, language, root, commentKinds(lang), out);
 }
 
 /// Parse `source` and write the spans of its comments to `out`. The arena
 /// holds the tree. Return the number of spans, or `error.OutputTooSmall`.
 pub fn extractComments(arena: std.mem.Allocator, lang: grammars.Lang, source: []const u8, out: []Span) Error!usize {
-    const language = grammars.language(lang);
-    assert(source.len <= std.math.maxInt(u32));
-    assert(out.len <= limits.max_subtrees);
-    const root = try parser.parse(arena, language, source);
-    return extractFromTree(arena, language, root, commentKinds(lang), out);
+    const count = try collectComments(arena, lang, source, out);
+    if (count > out.len) return error.OutputTooSmall;
+    assert(count <= out.len);
+    return count;
 }
 
 fn testExpectComments(lang: grammars.Lang, source: []const u8, expected: []const []const u8) !void {
@@ -99,4 +120,6 @@ test "extractComments reports a buffer that is too small" {
     defer arena_state.deinit();
     var spans: [1]Span = undefined;
     try std.testing.expectError(error.OutputTooSmall, extractComments(arena_state.allocator(), .go, "// a\n// b\npackage p\n", &spans));
+    try std.testing.expectEqual(@as(usize, 2), try collectComments(arena_state.allocator(), .go, "// a\n// b\npackage p\n", &spans));
+    try std.testing.expectEqual(@as(u32, 4), spans[0].end_byte);
 }

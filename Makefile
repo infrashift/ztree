@@ -2,16 +2,28 @@
 
 ZIG ?= zig
 PYTHON ?= python3
+GO ?= go
+GOFMT ?= $(shell $(GO) env GOROOT)/bin/gofmt
 ZIG_SOURCES := build.zig build.zig.zon src tests
 
-.PHONY: check build test conformance differential lint fmt wiki docs-style
+.PHONY: check build lib test conformance differential go lint fmt wiki docs-style
 
 ## check: run every gate (the default goal)
-check: lint test conformance differential wiki docs-style
+check: lint test conformance differential go wiki docs-style
 
 ## build: compile the library into zig-out
 build:
 	$(ZIG) build
+
+## lib: write the static library and the C header to zig-out (ReleaseSafe)
+lib:
+	$(ZIG) build lib --release
+
+## go: check the format of the Go binding, vet it and test it with the race detector
+go: lib
+	$(GOFMT) -l bindings/go | (! grep .)
+	cd bindings/go && $(GO) vet ./...
+	cd bindings/go && $(GO) test -race -count=1 ./...
 
 ## test: run the unit tests
 test:

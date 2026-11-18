@@ -7,12 +7,12 @@ tags:
   - "overview"
 created: "2026-11-17T06:11:42-06:00"
 timestamp: "2026-11-17T06:11:42-06:00"
-description: "The planned modules of ztree and the data flow of one parse, from source text to comment spans."
+description: "The modules of ztree and the data flow of one parse, from source text to comment spans."
 ---
 
 # ztree architecture overview
 
-This note describes the planned modules of ztree and the data flow of one parse. [ADR-0004](/decisions/adr-0004-a-batch-tree-sitter-runtime-for-abi-14-and-15--01a1e96b8f27.md) defines the scope.
+This note describes the modules of ztree and the data flow of one parse. [ADR-0004](/decisions/adr-0004-a-batch-tree-sitter-runtime-for-abi-14-and-15--01a1e96b8f27.md) defines the scope.
 
 ## Data flow
 1. The caller gives a language and a source text.
@@ -39,8 +39,10 @@ This note describes the planned modules of ztree and the data flow of one parse.
 | `src/recover.zig` | Error recovery. Valid input uses it too. | 3 |
 | `src/tree.zig` | Nodes, the cursor and S-expression output. | 5 |
 | `src/comments.zig` | Comment node types per language and span extraction. | 5 |
-| `src/capi.zig` | The exported C ABI. | 7 |
+| `src/capi.zig` | The exported C ABI and the panic handler of `libztree.a`. See the [C ABI spec](/specs/ztree-c-abi--01a1ec92dc4f.md). | 7 |
+| `bindings/go/` | The Go binding (cgo) of the C ABI. | 7 |
 
 ## Boundaries
+- `libztree.a` needs only libc. It holds no reference runtime, prints no stack trace and starts no thread.
 - The runtime never calls the reference runtime. Only the test and conformance steps link it.
 - The vendored C in `third_party/` stays unchanged. One exception: ztree generates the Zig grammar from a patched `grammar.js` ([ADR-0006](/decisions/adr-0006-a-patched-zig-grammar-for-zig-0-17-and-empty-containers--01a1ec8a934e.md)). See [ADR-0002](/decisions/adr-0002-zig-0-17-1-the-standard-library-and-vendored-c-grammars--01a1e96b8f06.md) and [ADR-0003](/decisions/adr-0003-adapt-the-nasa-power-of-10-rules-to-ztree--01a1e96b8f17.md).
