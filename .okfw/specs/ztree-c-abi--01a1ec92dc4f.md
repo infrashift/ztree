@@ -15,7 +15,7 @@ description: "The C ABI of libztree.a: ztree_extract_comments, its status codes,
 
 # ztree C ABI
 
-**Version:** 1 (`ZTREE_ABI_VERSION`)
+**Version:** 2 (`ZTREE_ABI_VERSION`). Version 2 adds `ZTREE_LANG_CPP`.
 **Header:** `include/ztree.h`
 **Library:** `zig-out/lib/libztree.a`, from `zig build lib --release`
 **Source:** [ISSUE-007](/issues/issue-007-c-abi-and-static-library-for-go-callers--01a1e96b8f9a.md)
@@ -25,7 +25,7 @@ The C ABI gives the comment spans of a source file to a C or Go caller. lexis us
 
 ## Build
 - `zig build lib --release` writes `zig-out/lib/libztree.a` and `zig-out/include/ztree.h`. The library uses ReleaseSafe, so the assertions stay active ([ADR-0003](/decisions/adr-0003-adapt-the-nasa-power-of-10-rules-to-ztree--01a1e96b8f17.md)).
-- The library holds the five grammars, the Zig code and compiler-rt. It needs only libc: `malloc`, `free`, `write`, `abort` and the `isw*` functions of the scanners.
+- The library holds the six grammars, the Zig code and compiler-rt. It needs only libc: `malloc`, `free`, `write`, `abort` and the `isw*` functions of the scanners.
 - The code is position independent, so a linker can put it into a PIE.
 - The library does not hold the reference runtime.
 
@@ -36,14 +36,14 @@ Returns the ABI version of the library. A caller compares it with `ZTREE_ABI_VER
 ### `int32_t ztree_extract_comments(lang, src, len, spans_out, max_spans, count_out)`
 | Parameter | Type | Rule |
 |---|---|---|
-| `lang` | `uint32_t` | One of `ZTREE_LANG_GO` (0), `ZTREE_LANG_ZIG` (1), `ZTREE_LANG_PYTHON` (2), `ZTREE_LANG_C` (3) and `ZTREE_LANG_RUST` (4). |
+| `lang` | `uint32_t` | One of `ZTREE_LANG_GO` (0), `ZTREE_LANG_ZIG` (1), `ZTREE_LANG_PYTHON` (2), `ZTREE_LANG_C` (3), `ZTREE_LANG_RUST` (4) and `ZTREE_LANG_CPP` (5). |
 | `src` | `const uint8_t *` | The source bytes. NULL is valid when `len` is 0. ztree reads the bytes and does not keep the pointer. |
 | `len` | `size_t` | The number of source bytes. The maximum is `ZTREE_MAX_SOURCE_BYTES` (16 MiB). |
 | `spans_out` | `ztree_span *` | The output buffer that the caller owns. NULL is valid when `max_spans` is 0. |
 | `max_spans` | `size_t` | The number of spans in `spans_out`. |
 | `count_out` | `size_t *` | Receives the number of comments in the source. It must not be NULL. |
 
-The function parses the source, walks the tree in source order and writes one `ztree_span` for each comment node. The comment node types come from the `node-types.json` of each grammar: `comment` for Go, Zig, Python and C; `line_comment` and `block_comment` for Rust. A comment node with children, such as a Rust doc comment, gives one span. A source with syntax errors still gives its comments.
+The function parses the source, walks the tree in source order and writes one `ztree_span` for each comment node. The comment node types come from the `node-types.json` of each grammar: `comment` for Go, Zig, Python, C and C++; `line_comment` and `block_comment` for Rust. A comment node with children, such as a Rust doc comment, gives one span. A source with syntax errors still gives its comments.
 
 ## Spans
 `ztree_span` holds six `uint32_t` fields: `start_byte`, `end_byte`, `start_row`, `start_column`, `end_row` and `end_column`. The size is 24 bytes.

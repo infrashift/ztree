@@ -1,4 +1,4 @@
-// Package ztree extracts the comments of Go, Zig, Python, C and Rust source
+// Package ztree extracts the comments of Go, Zig, Python, C, C++ and Rust source
 // with ztree, a Tree-sitter runtime in Zig. It calls the C ABI of
 // libztree.a (include/ztree.h of the ztree repository).
 //
@@ -29,6 +29,7 @@ const (
 	LangPython Lang = C.ZTREE_LANG_PYTHON
 	LangC      Lang = C.ZTREE_LANG_C
 	LangRust   Lang = C.ZTREE_LANG_RUST
+	LangCPP    Lang = C.ZTREE_LANG_CPP
 )
 
 // String returns the name of the grammar.
@@ -44,6 +45,8 @@ func (l Lang) String() string {
 		return "c"
 	case LangRust:
 		return "rust"
+	case LangCPP:
+		return "cpp"
 	}
 	return fmt.Sprintf("Lang(%d)", uint32(l))
 }

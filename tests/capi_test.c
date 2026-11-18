@@ -50,6 +50,9 @@ static void test_each_grammar(void) {
   expect_comments(ZTREE_LANG_C, "/* a */ int x; // b\n", c, 2);
   const char *rust[] = {"// a", "/* c */"};
   expect_comments(ZTREE_LANG_RUST, "// a\nfn f() {} /* c */\n", rust, 2);
+  /* The raw string holds "//": the external scanner reads it as string content. */
+  const char *cpp[] = {"/* a */", "// b"};
+  expect_comments(ZTREE_LANG_CPP, "/* a */ auto s = R\"d(// no)d\"; // b\n", cpp, 2);
 }
 
 static void test_points(void) {

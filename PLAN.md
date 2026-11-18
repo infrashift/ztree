@@ -66,9 +66,9 @@ Tracking: [ISSUE-007](.okfw/issues/issue-007-c-abi-and-static-library-for-go-cal
 
 ## Phase 8 — C++ grammar
 Tracking: [ISSUE-010](.okfw/issues/issue-010-the-c-grammar--01a1ef92fe7b.md)
-- [ ] Vendor tree-sitter-cpp v0.23.4 into `third_party/grammars/cpp/` and compile `parser.c` and `scanner.c`
-- [ ] Add `cpp` to `grammars.Lang`, the comment kinds, the C ABI and the Go binding
-- [ ] Add the C++ corpus to `conformance` and C++ files to `differential`
+- [x] Vendor tree-sitter-cpp v0.23.4 into `third_party/grammars/cpp/` and compile `parser.c` and `scanner.c`
+- [x] Add `cpp` to `grammars.Lang`, the comment kinds, the C ABI and the Go binding
+- [x] Add the C++ corpus to `conformance` and C++ files to `differential`
 
 ## Phase 9 — Flat tree and node API
 Tracking: [ISSUE-011](.okfw/issues/issue-011-the-flat-tree-and-the-node-api--01a1ef92fe81.md)

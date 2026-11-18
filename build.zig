@@ -9,6 +9,8 @@ const grammar_sources = [_][]const u8{
     "third_party/grammars/c/src/parser.c",
     "third_party/grammars/rust/src/parser.c",
     "third_party/grammars/rust/src/scanner.c",
+    "third_party/grammars/cpp/src/parser.c",
+    "third_party/grammars/cpp/src/scanner.c",
 };
 
 const c_flags = [_][]const u8{"-std=c11"};
@@ -168,7 +170,7 @@ pub fn build(b: *std.Build) void {
 
     // The differential step on real files (ISSUE-006): `zig build differential`.
     const diff_dirs = b.option([]const []const u8, "diff-dirs", "Directories for the differential step") orelse
-        &[_][]const u8{ "src", "tests", "scripts", "third_party/tree-sitter/lib/src" };
+        &[_][]const u8{ "src", "tests", "scripts", "third_party/tree-sitter/lib/src", "third_party/grammars/cpp/examples" };
     const diff_options = b.addOptions();
     diff_options.addOption([]const []const u8, "dirs", diff_dirs);
     diff_options.addOption(bool, "list_errors", b.option(bool, "diff-list-errors", "List each file whose tree has errors") orelse false);
@@ -199,6 +201,8 @@ const lexer_samples = [_]struct { []const u8, []const u8 }{
     .{ "c_preprocessor", "third_party/grammars/c/test/corpus/preprocessor.txt" },
     .{ "rust_declarations", "third_party/grammars/rust/test/corpus/declarations.txt" },
     .{ "rust_literals", "third_party/grammars/rust/test/corpus/literals.txt" },
+    .{ "cpp_declarations", "third_party/grammars/cpp/test/corpus/declarations.txt" },
+    .{ "cpp_expressions", "third_party/grammars/cpp/test/corpus/expressions.txt" },
     .{ "zig_lexer", "src/lexer.zig" },
 };
 
@@ -233,6 +237,22 @@ const parser_samples = [_]struct { []const u8, []const u8, []const u8 }{
     .{ "rust", "corpus", "third_party/grammars/rust/test/corpus/patterns.txt" },
     .{ "rust", "corpus", "third_party/grammars/rust/test/corpus/source_files.txt" },
     .{ "rust", "corpus", "third_party/grammars/rust/test/corpus/types.txt" },
+    .{ "cpp", "corpus", "third_party/grammars/cpp/test/corpus/ambiguities.txt" },
+    .{ "cpp", "corpus", "third_party/grammars/cpp/test/corpus/concepts.txt" },
+    .{ "cpp", "corpus", "third_party/grammars/cpp/test/corpus/declarations.txt" },
+    .{ "cpp", "corpus", "third_party/grammars/cpp/test/corpus/definitions.txt" },
+    .{ "cpp", "corpus", "third_party/grammars/cpp/test/corpus/expressions.txt" },
+    .{ "cpp", "corpus", "third_party/grammars/cpp/test/corpus/microsoft.txt" },
+    .{ "cpp", "corpus", "third_party/grammars/cpp/test/corpus/statements.txt" },
+    .{ "cpp", "corpus", "third_party/grammars/cpp/test/corpus/types.txt" },
+    .{ "cpp", "corpus", "third_party/grammars/cpp/test/corpus/c/ambiguities.txt" },
+    .{ "cpp", "corpus", "third_party/grammars/cpp/test/corpus/c/crlf.txt" },
+    .{ "cpp", "corpus", "third_party/grammars/cpp/test/corpus/c/declarations.txt" },
+    .{ "cpp", "corpus", "third_party/grammars/cpp/test/corpus/c/expressions.txt" },
+    .{ "cpp", "corpus", "third_party/grammars/cpp/test/corpus/c/microsoft.txt" },
+    .{ "cpp", "corpus", "third_party/grammars/cpp/test/corpus/c/preprocessor.txt" },
+    .{ "cpp", "corpus", "third_party/grammars/cpp/test/corpus/c/statements.txt" },
+    .{ "cpp", "corpus", "third_party/grammars/cpp/test/corpus/c/types.txt" },
     .{ "zig", "file", "src/abi.zig" },
     .{ "zig", "file", "src/grammars.zig" },
     .{ "zig", "file", "src/language.zig" },
@@ -247,6 +267,7 @@ const parser_samples = [_]struct { []const u8, []const u8, []const u8 }{
     .{ "c", "file", "third_party/grammars/rust/src/scanner.c" },
     .{ "c", "file", "third_party/tree-sitter/lib/src/stack.c" },
     .{ "c", "file", "tests/ref_shim.c" },
+    .{ "cpp", "file", "third_party/grammars/cpp/examples/rule.cc" },
     .{ "python", "file", "scripts/nasa-lint.py" },
     .{ "python", "file", "scripts/ste-check.py" },
 };

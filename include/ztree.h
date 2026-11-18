@@ -18,7 +18,7 @@ extern "C" {
 #endif
 
 /* The version of this header. ztree_abi_version() returns the version of the library. */
-#define ZTREE_ABI_VERSION 1
+#define ZTREE_ABI_VERSION 2
 
 /* Grammars. */
 #define ZTREE_LANG_GO 0
@@ -26,6 +26,7 @@ extern "C" {
 #define ZTREE_LANG_PYTHON 2
 #define ZTREE_LANG_C 3
 #define ZTREE_LANG_RUST 4
+#define ZTREE_LANG_CPP 5
 
 /* Status codes. */
 #define ZTREE_OK 0

@@ -26,7 +26,7 @@ fn abortWithMessage(msg: []const u8, first_trace_addr: ?usize) noreturn {
 }
 
 /// `ZTREE_ABI_VERSION` of `include/ztree.h`. Change it with each change of the header.
-pub const abi_version: u32 = 1;
+pub const abi_version: u32 = 2;
 
 /// The status codes of `include/ztree.h`.
 pub const Status = enum(i32) {
@@ -48,10 +48,11 @@ pub fn langFromC(value: u32) ?grammars.Lang {
         2 => .python,
         3 => .c,
         4 => .rust,
+        5 => .cpp,
         else => null,
     };
-    assert(lang == null or value <= 4);
-    assert(lang != null or value > 4);
+    assert(lang == null or value <= 5);
+    assert(lang != null or value > 5);
     return lang;
 }
 
@@ -120,7 +121,7 @@ test "ztree_extract_comments writes the spans and the count" {
 test "ztree_extract_comments rejects bad arguments" {
     var spans: [1]comments.Span = undefined;
     var count: usize = 99;
-    try std.testing.expectEqual(@as(i32, 2), ztree_extract_comments(5, "x", 1, &spans, 1, &count));
+    try std.testing.expectEqual(@as(i32, 2), ztree_extract_comments(6, "x", 1, &spans, 1, &count));
     try std.testing.expectEqual(@as(usize, 0), count);
     try std.testing.expectEqual(@as(i32, 2), ztree_extract_comments(0, null, 1, &spans, 1, &count));
     try std.testing.expectEqual(@as(i32, 2), ztree_extract_comments(0, "x", 1, null, 1, &count));
@@ -131,8 +132,10 @@ test "ztree_extract_comments rejects bad arguments" {
 }
 
 test "each C language value maps to a grammar" {
-    for (0..5) |v| try std.testing.expect(langFromC(@intCast(v)) != null);
+    for (0..6) |v| try std.testing.expect(langFromC(@intCast(v)) != null);
     try std.testing.expectEqual(grammars.Lang.rust, langFromC(4).?);
+    try std.testing.expectEqual(grammars.Lang.cpp, langFromC(5).?);
+    try std.testing.expectEqual(@as(?grammars.Lang, null), langFromC(6));
     try std.testing.expectEqual(@as(?grammars.Lang, null), langFromC(std.math.maxInt(u32)));
     try std.testing.expectEqual(@as(usize, 24), @sizeOf(comments.Span));
     // `ZTREE_MAX_SOURCE_BYTES` of `include/ztree.h`.

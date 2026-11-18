@@ -27,7 +27,7 @@ pub const Span = extern struct {
 /// The node types of the comments of each grammar (`node-types.json`).
 pub fn commentKinds(lang: grammars.Lang) []const []const u8 {
     const kinds: []const []const u8 = switch (lang) {
-        .go, .zig, .python, .c => &.{"comment"},
+        .go, .zig, .python, .c, .cpp => &.{"comment"},
         .rust => &.{ "line_comment", "block_comment" },
     };
     assert(kinds.len > 0);
