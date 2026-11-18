@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 /* The version of this header. ztree_abi_version() returns the version of the library. */
-#define ZTREE_ABI_VERSION 3
+#define ZTREE_ABI_VERSION 4
 
 /* Grammars. */
 #define ZTREE_LANG_GO 0
@@ -37,6 +37,8 @@ extern "C" {
 #define ZTREE_ERROR_OUT_OF_MEMORY 4
 #define ZTREE_ERROR_LIMIT_REACHED 5    /* A hard limit of the parser: nodes, stack or depth. */
 #define ZTREE_ERROR_UNSUPPORTED_GRAMMAR 6
+#define ZTREE_ERROR_REGEX_SYNTAX 7      /* The Go regexp package rejects the pattern too. */
+#define ZTREE_ERROR_REGEX_UNSUPPORTED 8 /* Valid RE2 syntax that ztree does not read. */
 
 /* The largest source, in bytes. */
 #define ZTREE_MAX_SOURCE_BYTES (16u * 1024u * 1024u)
@@ -176,6 +178,21 @@ uint32_t ztree_language_symbol_flags(uint32_t lang, uint32_t symbol);
 
 /* The name of a field, or NULL for 0 and out of range. */
 const char *ztree_language_field_name(uint32_t lang, uint32_t field);
+
+/*
+ * Report in *matched_out whether the regex pattern[0..pattern_len) matches
+ * somewhere in text[0..text_len), as regexp.Match of Go does. The pattern
+ * syntax is a subset of RE2 (the wiki decision ADR-0010). The query
+ * predicate #match? uses the same engine.
+ *
+ * Returns ZTREE_OK, ZTREE_ERROR_REGEX_SYNTAX or ZTREE_ERROR_REGEX_UNSUPPORTED
+ * with the byte offset of the error in *error_offset_out, or
+ * ZTREE_ERROR_LIMIT_REACHED for a pattern that needs too large a program.
+ * pattern and text can be NULL when their length is 0.
+ */
+int32_t ztree_regex_match(const uint8_t *pattern, size_t pattern_len,
+                          const uint8_t *text, size_t text_len,
+                          int32_t *matched_out, size_t *error_offset_out);
 
 #ifdef __cplusplus
 }

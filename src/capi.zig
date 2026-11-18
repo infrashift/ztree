@@ -28,7 +28,7 @@ fn abortWithMessage(msg: []const u8, first_trace_addr: ?usize) noreturn {
 }
 
 /// `ZTREE_ABI_VERSION` of `include/ztree.h`. Change it with each change of the header.
-pub const abi_version: u32 = 3;
+pub const abi_version: u32 = 4;
 
 /// The status codes of `include/ztree.h`.
 pub const Status = enum(i32) {
@@ -39,6 +39,8 @@ pub const Status = enum(i32) {
     out_of_memory = 4,
     limit_reached = 5,
     unsupported_grammar = 6,
+    regex_syntax = 7,
+    regex_unsupported = 8,
 };
 
 /// The `ZTREE_LANG_*` values of `include/ztree.h`. The values do not depend
@@ -151,6 +153,58 @@ fn parse(lang_value: u32, src: ?[*]const u8, len: usize, out: ParseOut) Status {
     assert(counts.nodes > 0);
     assert(counts.nodes <= limits.max_subtrees);
     return if (counts.nodes > nodes.len or counts.overrides > overrides.len) .buffer_too_small else .ok;
+}
+
+/// `ztree_regex_match`: see `include/ztree.h`.
+export fn ztree_regex_match(pattern: ?[*]const u8, pattern_len: usize, text: ?[*]const u8, text_len: usize, matched_out: ?*i32, error_offset_out: ?*usize) callconv(.c) i32 {
+    const status = regexMatch(pattern, pattern_len, text, text_len, matched_out, error_offset_out);
+    assert(status != .ok or matched_out.?.* == 0 or matched_out.?.* == 1);
+    assert(status != .regex_syntax or error_offset_out.?.* <= pattern_len);
+    return @backingInt(status);
+}
+
+fn regexMatch(pattern: ?[*]const u8, pattern_len: usize, text: ?[*]const u8, text_len: usize, matched_out: ?*i32, error_offset_out: ?*usize) Status {
+    const matched = matched_out orelse return .invalid_argument;
+    const error_offset = error_offset_out orelse return .invalid_argument;
+    matched.* = 0;
+    error_offset.* = 0;
+    if ((pattern == null and pattern_len > 0) or (text == null and text_len > 0)) return .invalid_argument;
+    if (text_len > limits.max_source_bytes) return .source_too_large;
+    const regex = ztree.regex;
+    var arena_state = std.heap.ArenaAllocator.init(std.heap.c_allocator);
+    defer arena_state.deinit();
+    const arena = arena_state.allocator();
+    const insts = arena.alloc(regex.Inst, regex.max_insts) catch return .out_of_memory;
+    const ranges = arena.alloc(regex.Range, regex.max_ranges) catch return .out_of_memory;
+    var diag = regex.Diagnostic{};
+    const prog = regex.compile(if (pattern) |p| p[0..pattern_len] else "", insts, ranges, &diag) catch |err| {
+        error_offset.* = diag.offset;
+        return switch (err) {
+            error.Syntax => .regex_syntax,
+            error.Unsupported => .regex_unsupported,
+            error.TooLarge => .limit_reached,
+        };
+    };
+    const scratch = arena.alloc(u32, regex.scratchLen(prog)) catch return .out_of_memory;
+    matched.* = @intFromBool(regex.isMatch(prog, if (text) |t| t[0..text_len] else "", scratch));
+    assert(prog.insts.len <= regex.max_insts);
+    return .ok;
+}
+
+test "ztree_regex_match matches and reports errors" {
+    var matched: i32 = 9;
+    var offset: usize = 9;
+    try std.testing.expectEqual(@as(i32, 0), ztree_regex_match("b+", 2, "abbc", 4, &matched, &offset));
+    try std.testing.expectEqual(@as(i32, 1), matched);
+    try std.testing.expectEqual(@as(i32, 0), ztree_regex_match("^b", 2, "abbc", 4, &matched, &offset));
+    try std.testing.expectEqual(@as(i32, 0), matched);
+    try std.testing.expectEqual(@as(i32, 7), ztree_regex_match("a(b", 3, "", 0, &matched, &offset));
+    try std.testing.expectEqual(@as(usize, 1), offset);
+    try std.testing.expectEqual(@as(i32, 8), ztree_regex_match("\\pL", 3, "", 0, &matched, &offset));
+    try std.testing.expectEqual(@as(i32, 0), ztree_regex_match(null, 0, null, 0, &matched, &offset));
+    try std.testing.expectEqual(@as(i32, 1), matched);
+    try std.testing.expectEqual(@as(i32, 2), ztree_regex_match(null, 1, null, 0, &matched, &offset));
+    try std.testing.expectEqual(@as(i32, 2), ztree_regex_match("a", 1, "a", 1, null, &offset));
 }
 
 /// The grammar of a `ZTREE_LANG_*` value, or null.

@@ -12,6 +12,7 @@ pub const language = @import("language.zig");
 pub const lexer = @import("lexer.zig");
 pub const parser = @import("parser.zig");
 pub const recover = @import("recover.zig");
+pub const regex = @import("regex.zig");
 pub const stack = @import("stack.zig");
 pub const subtree = @import("subtree.zig");
 pub const tree = @import("tree.zig");
