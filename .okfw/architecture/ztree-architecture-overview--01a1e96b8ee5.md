@@ -12,7 +12,7 @@ description: "The modules of ztree and the data flow of one parse, from source t
 
 # ztree architecture overview
 
-This note describes the modules of ztree and the data flow of one parse. [ADR-0004](/decisions/adr-0004-a-batch-tree-sitter-runtime-for-abi-14-and-15--01a1e96b8f27.md) defines the scope.
+This note describes the modules of ztree and the data flow of one parse. [ADR-0004](/decisions/adr-0004-a-batch-tree-sitter-runtime-for-abi-14-and-15--01a1e96b8f27.md) and [ADR-0007](/decisions/adr-0007-ztree-is-the-tree-sitter-service-of-lexis-and-semscope--01a1ef926073.md) define the scope. Phases 9 to 12 add the flat tree, the regex engine and the query engine ([ADR-0008](/decisions/adr-0008-a-flat-tree-and-a-compiled-query-blob-in-caller-memory--01a1ef929e5c.md)).
 
 ## Data flow
 1. The caller gives a language and a source text.

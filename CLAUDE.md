@@ -1,7 +1,7 @@
 # CLAUDE.md — ztree
 
 ## Purpose (WHY)
-ztree is a batch Tree-sitter runtime in Zig. It follows the NASA Power of 10 rules. It loads the generated grammars of Go, Zig, Python, C and Rust. It extracts comment spans for lexis through a C ABI. [ADR-0004](.okfw/decisions/adr-0004-a-batch-tree-sitter-runtime-for-abi-14-and-15--01a1e96b8f27.md) defines the scope.
+ztree is a batch Tree-sitter runtime in Zig. It follows the NASA Power of 10 rules. It loads the generated grammars of Go, Zig, Python, C, C++ and Rust. It is the Tree-sitter service of two linters through a C ABI: lexis reads comment spans, and semscope reads trees and runs queries. [ADR-0004](.okfw/decisions/adr-0004-a-batch-tree-sitter-runtime-for-abi-14-and-15--01a1e96b8f27.md) and [ADR-0007](.okfw/decisions/adr-0007-ztree-is-the-tree-sitter-service-of-lexis-and-semscope--01a1ef926073.md) define the scope.
 
 ## Tech Stack (WHAT)
 - **Language:** Zig 0.17.1, pinned in `build.zig.zon` as `minimum_zig_version`.

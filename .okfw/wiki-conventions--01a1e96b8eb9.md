@@ -29,7 +29,7 @@ This guide defines how the ztree OKF wiki (`.okfw/`) stores project knowledge.
 | `daily/` | daily note | `okfw daily`: what changed, what you learned, what is next. |
 
 ## PLAN.md and issues
-`PLAN.md` is the phase checklist. Each phase from 1 to 7 has a mirror issue (ISSUE-001 to ISSUE-007). Each phase heading in `PLAN.md` has a `Tracking:` line that links to its issue. When a phase is done, tick the `PLAN.md` checkboxes and the acceptance criteria of the issue.
+`PLAN.md` is the phase checklist. Each phase has a mirror issue: phases 1 to 7 have ISSUE-001 to ISSUE-007, and phases 8 to 13 have ISSUE-010 to ISSUE-015. Each phase heading in `PLAN.md` has a `Tracking:` line that links to its issue. When a phase is done, tick the `PLAN.md` checkboxes and the acceptance criteria of the issue.
 
 ## ADRs (`decisions/`)
 - Title: `ADR-NNNN: <decision>`. Number ADRs in sequence. Do not reuse a number.

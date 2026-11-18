@@ -12,7 +12,7 @@ description: "ztree parses whole files with generated grammars of ABI 14 and 15 
 
 # ADR-0004: A batch Tree-sitter runtime for ABI 14 and 15
 
-**Status:** Accepted
+**Status:** Accepted. [ADR-0007](/decisions/adr-0007-ztree-is-the-tree-sitter-service-of-lexis-and-semscope--01a1ef926073.md) replaces the scope lines. The pin table stays valid.
 **Date:** 2026-11-17
 **Source:** User request: a Tree-sitter runtime in Zig under the Power of 10 rules, for comment extraction in lexis.
 

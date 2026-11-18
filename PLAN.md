@@ -1,13 +1,13 @@
 # PLAN.md — ztree
 
-ztree is a batch Tree-sitter runtime in Zig 0.17.1 under the NASA Power of 10 rules. lexis uses it to extract the comments of Go, Zig, Python, C and Rust files.
+ztree is a batch Tree-sitter runtime in Zig 0.17.1 under the NASA Power of 10 rules. lexis uses it to extract the comments of source files. semscope uses its trees and queries in place of go-tree-sitter (ADR-0007).
 
-Work on one phase at a time (`CLAUDE.md` rule 1). Each phase from 1 to 7 has a mirror issue in the OKF wiki (`.okfw/issues/`). When a phase is done, tick this checklist and the acceptance criteria of the issue.
+Work on one phase at a time (`CLAUDE.md` rule 1). Each phase from 1 to 13 has a mirror issue in the OKF wiki (`.okfw/issues/`). When a phase is done, tick this checklist and the acceptance criteria of the issue.
 
 Loop: implement one task, run `zmake check`, and repeat until green. Then update the wiki and commit once per phase.
 
 - Architecture: [ztree architecture overview](.okfw/architecture/ztree-architecture-overview--01a1e96b8ee5.md)
-- Decisions: [ADR-0001 wiki](.okfw/decisions/adr-0001-adopt-an-okf-wiki-okfw-for-project-knowledge--01a1e96b8ef6.md) · [ADR-0002 toolchain](.okfw/decisions/adr-0002-zig-0-17-1-the-standard-library-and-vendored-c-grammars--01a1e96b8f06.md) · [ADR-0003 Power of 10](.okfw/decisions/adr-0003-adapt-the-nasa-power-of-10-rules-to-ztree--01a1e96b8f17.md) · [ADR-0004 scope](.okfw/decisions/adr-0004-a-batch-tree-sitter-runtime-for-abi-14-and-15--01a1e96b8f27.md) · [ADR-0005 arena](.okfw/decisions/adr-0005-one-arena-per-parse-no-reference-counts-and-no-balance-step--01a1ebbb7488.md) · [ADR-0006 Zig grammar](.okfw/decisions/adr-0006-a-patched-zig-grammar-for-zig-0-17-and-empty-containers--01a1ec8a934e.md)
+- Decisions: [ADR-0001 wiki](.okfw/decisions/adr-0001-adopt-an-okf-wiki-okfw-for-project-knowledge--01a1e96b8ef6.md) · [ADR-0002 toolchain](.okfw/decisions/adr-0002-zig-0-17-1-the-standard-library-and-vendored-c-grammars--01a1e96b8f06.md) · [ADR-0003 Power of 10](.okfw/decisions/adr-0003-adapt-the-nasa-power-of-10-rules-to-ztree--01a1e96b8f17.md) · [ADR-0004 scope](.okfw/decisions/adr-0004-a-batch-tree-sitter-runtime-for-abi-14-and-15--01a1e96b8f27.md) · [ADR-0005 arena](.okfw/decisions/adr-0005-one-arena-per-parse-no-reference-counts-and-no-balance-step--01a1ebbb7488.md) · [ADR-0006 Zig grammar](.okfw/decisions/adr-0006-a-patched-zig-grammar-for-zig-0-17-and-empty-containers--01a1ec8a934e.md) · [ADR-0007 semscope scope](.okfw/decisions/adr-0007-ztree-is-the-tree-sitter-service-of-lexis-and-semscope--01a1ef926073.md) · [ADR-0008 flat tree ABI](.okfw/decisions/adr-0008-a-flat-tree-and-a-compiled-query-blob-in-caller-memory--01a1ef929e5c.md)
 - Rules: ADR-0003 for the code. ASD-STE100 for all documentation.
 
 ## Phase 0 — Bootstrap
@@ -63,3 +63,39 @@ Tracking: [ISSUE-007](.okfw/issues/issue-007-c-abi-and-static-library-for-go-cal
 - [x] Write `libztree.a` and `include/ztree.h` with `zig build lib`
 - [x] Export `ztree_extract_comments` with a bounded output buffer and no callbacks
 - [x] Add the Go binding in `bindings/go/` with its tests, and the C ABI spec
+
+## Phase 8 — C++ grammar
+Tracking: [ISSUE-010](.okfw/issues/issue-010-the-c-grammar--01a1ef92fe7b.md)
+- [ ] Vendor tree-sitter-cpp v0.23.4 into `third_party/grammars/cpp/` and compile `parser.c` and `scanner.c`
+- [ ] Add `cpp` to `grammars.Lang`, the comment kinds, the C ABI and the Go binding
+- [ ] Add the C++ corpus to `conformance` and C++ files to `differential`
+
+## Phase 9 — Flat tree and node API
+Tracking: [ISSUE-011](.okfw/issues/issue-011-the-flat-tree-and-the-node-api--01a1ef92fe81.md)
+- [ ] Flatten the finished tree into node records (`src/flat.zig`) and compare its S-expression with `tree.writeSexp`
+- [ ] Export `ztree_parse` and the language metadata functions
+- [ ] Compare each flat node with the reference `TSNode` API in the differential step
+- [ ] Add `Parser`, `Tree`, `Node` and `TreeCursor` to the Go binding
+
+## Phase 10 — Bounded regex
+Tracking: [ISSUE-012](.okfw/issues/issue-012-a-bounded-regex-engine-for-match-predicates--01a1ef92fe88.md)
+- [ ] Add an RE2-subset compiler and a Pike VM (`src/regex.zig`), and record the subset in an ADR
+- [ ] Compare the results with the Go `regexp` package on a table of patterns and inputs
+
+## Phase 11 — Query compiler
+Tracking: [ISSUE-013](.okfw/issues/issue-013-the-query-compiler--01a1ef92fe8e.md)
+- [ ] Parse the query language into a compiled blob (`src/query.zig`)
+- [ ] Validate node types, fields, captures and predicates, and report the position of each error
+- [ ] Export `ztree_query_compile`
+
+## Phase 12 — Query execution
+Tracking: [ISSUE-014](.okfw/issues/issue-014-query-execution--01a1ef92fe94.md)
+- [ ] Match a compiled query against a flat tree (`src/query_exec.zig`) and export `ztree_query_exec`
+- [ ] Add `NewQuery` and `QueryCursor` to the Go binding
+- [ ] Compare the matches with the reference query cursor in `zig build query-diff`, and add the target to `check`
+
+## Phase 13 — Handoff to semscope
+Tracking: [ISSUE-015](.okfw/issues/issue-015-handoff-to-semscope--01a1ef92fe9b.md)
+- [ ] Update the C ABI spec and add a Go benchmark
+- [ ] Write the semscope migration guide in the wiki
+- [ ] Run the tests and the parity step of a local semscope branch with ztree
