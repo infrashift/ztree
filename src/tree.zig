@@ -9,6 +9,7 @@ const abi = @import("abi.zig");
 const language = @import("language.zig");
 const length = @import("length.zig");
 const st = @import("subtree.zig");
+const utf8 = @import("utf8.zig");
 const limits = @import("root.zig").limits;
 
 const Language = abi.Language14;
@@ -169,18 +170,38 @@ const SexpFrame = struct {
     child_index: u32 = 0,
     structural_child_index: u32 = 0,
     fields: []const abi.FieldMapEntry = &.{},
+    /// The position of the start of the padding of the node.
+    offset: Length,
+    /// The position of the next child.
+    child_offset: Length,
 };
 
 /// Write `root` as the reference `ts_node_string` writes it
 /// (`ts_subtree__write_to_string` without hidden nodes).
 pub fn writeSexp(arena: std.mem.Allocator, lang: *const Language, root: *const Subtree, w: *std.Io.Writer) (Error || std.Io.Writer.Error)!void {
+    assert(lang.symbol_count > 0);
+    assert(root.children.len <= limits.max_subtrees);
+    return writeSexpImpl(true, arena, lang, root, "", w);
+}
+
+/// Write `root` as `writeSexp` does, with the two rules of the flat tree
+/// (ADR-0009). It omits the MISSING nodes of hidden tokens, which a cursor
+/// does not visit. It writes the first character of the text of an ERROR
+/// leaf from `source`, not the lookahead character of the lexer.
+pub fn writeVisibleSexp(arena: std.mem.Allocator, lang: *const Language, root: *const Subtree, source: []const u8, w: *std.Io.Writer) (Error || std.Io.Writer.Error)!void {
+    assert(lang.symbol_count > 0);
+    assert(st.addLength(root.padding, root.size).bytes <= source.len);
+    return writeSexpImpl(false, arena, lang, root, source, w);
+}
+
+fn writeSexpImpl(comptime reference: bool, arena: std.mem.Allocator, lang: *const Language, root: *const Subtree, source: []const u8, w: *std.Io.Writer) (Error || std.Io.Writer.Error)!void {
     var stack: std.ArrayList(SexpFrame) = .empty;
-    try stack.append(arena, .{ .subtree = root, .alias_symbol = 0, .alias_is_named = false, .field_name = null, .is_root = true });
+    try stack.append(arena, .{ .subtree = root, .alias_symbol = 0, .alias_is_named = false, .field_name = null, .is_root = true, .offset = length.zero, .child_offset = length.zero });
     var steps: usize = 0;
     while (stack.items.len > 0) : (steps += 1) {
         assert(steps <= limits.max_subtrees * 3);
         const frame = &stack.items[stack.items.len - 1];
-        if (!frame.pre_written) try writeOpen(lang, frame, w);
+        if (!frame.pre_written) try writeOpen(reference, lang, frame, source, w);
         if (frame.child_index < frame.subtree.children.len) {
             const child_frame = childFrame(lang, frame);
             if (stack.items.len >= limits.max_tree_depth) return error.TreeTooDeep;
@@ -203,11 +224,12 @@ fn fieldMap(lang: *const Language, production_id: u16) []const abi.FieldMapEntry
 }
 
 /// Write the opening of a frame: the name of a visible node.
-fn writeOpen(lang: *const Language, frame: *SexpFrame, w: *std.Io.Writer) (Error || std.Io.Writer.Error)!void {
+fn writeOpen(comptime reference: bool, lang: *const Language, frame: *SexpFrame, source: []const u8, w: *std.Io.Writer) (Error || std.Io.Writer.Error)!void {
     const node = frame.subtree;
     assert(!frame.pre_written);
     assert(node.children.len <= limits.max_subtrees);
-    const is_visible = node.is_missing or
+    const shown_missing = node.is_missing and (reference or node.visible or frame.alias_symbol != 0);
+    const is_visible = shown_missing or
         (if (frame.alias_symbol != 0) frame.alias_is_named else node.visible and node.named);
     const symbol = if (frame.alias_symbol != 0) frame.alias_symbol else node.symbol;
     const name = symbolName(lang, symbol);
@@ -218,7 +240,8 @@ fn writeOpen(lang: *const Language, frame: *SexpFrame, w: *std.Io.Writer) (Error
         }
         if (node.isError() and node.children.len == 0 and node.size.bytes > 0) {
             try w.writeAll("(UNEXPECTED ");
-            try writeChar(node.lookahead_char, w);
+            const start = st.addLength(frame.offset, node.padding).bytes;
+            try writeChar(if (reference) node.lookahead_char else utf8.decode(source[start..]).code_point, w);
         } else if (node.is_missing) {
             if (frame.alias_is_named or node.named) try w.print("(MISSING {s}", .{name}) else try w.print("(MISSING \"{s}\"", .{name});
         } else {
@@ -229,6 +252,7 @@ fn writeOpen(lang: *const Language, frame: *SexpFrame, w: *std.Io.Writer) (Error
     }
     if (node.children.len > 0) frame.fields = fieldMap(lang, node.production_id);
     frame.is_visible = is_visible;
+    frame.child_offset = frame.offset;
     frame.pre_written = true;
 }
 
@@ -237,7 +261,8 @@ fn childFrame(lang: *const Language, frame: *SexpFrame) SexpFrame {
     const child = frame.subtree.children[frame.child_index];
     assert(frame.pre_written);
     frame.child_index += 1;
-    var result = SexpFrame{ .subtree = child, .alias_symbol = 0, .alias_is_named = false, .field_name = null, .is_root = false };
+    var result = SexpFrame{ .subtree = child, .alias_symbol = 0, .alias_is_named = false, .field_name = null, .is_root = false, .offset = frame.child_offset, .child_offset = frame.child_offset };
+    frame.child_offset = st.addLength(frame.child_offset, child.totalSize());
     if (child.extra) return result;
     const alias = language.aliasAt(lang, frame.subtree.productionId(), frame.structural_child_index);
     result.alias_symbol = alias;

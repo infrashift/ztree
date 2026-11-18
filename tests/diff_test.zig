@@ -76,7 +76,7 @@ test "real source files parse the same with ztree and the reference runtime" {
     var totals = diff.Totals{};
     for (options.dirs) |d| try checkDir(gpa, std.testing.io, d, &stats, &totals);
     const names = [_][]const u8{ "go", "zig", "python", "c", "rust", "cpp" };
-    std.debug.print("differential: {d} files, {d} skipped (over {d} bytes), {d} failures, {d} comments\n", .{ stats.files, stats.skipped, max_file_bytes, stats.failures, totals.comments });
+    std.debug.print("differential: {d} files, {d} skipped (over {d} bytes), {d} failures, {d} comments, {d} flat nodes, {d} field children, {d} overrides\n", .{ stats.files, stats.skipped, max_file_bytes, stats.failures, totals.comments, totals.nodes, totals.field_children, totals.overrides });
     for (names, stats.per_lang) |n, c| if (c[0] > 0) std.debug.print("  {s}: {d} files, {d} with syntax errors\n", .{ n, c[0], c[1] });
     try std.testing.expectEqual(@as(usize, 0), stats.failures);
     try std.testing.expect(stats.files > 0);

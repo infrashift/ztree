@@ -1,0 +1,30 @@
+---
+id: "01a1f080-f76c-775c-a591-dd7bd7e7886c"
+title: "ISSUE-016: The GLR stack limit of 64 heads"
+type: "Issue"
+kind: "issue"
+tags:
+  - "issue"
+  - "open"
+  - "parser"
+created: "2026-11-18T15:12:26-06:00"
+timestamp: "2026-11-18T15:12:26-06:00"
+description: "The C grammar needs more than 64 stack heads for one libstdc++ header, so ztree returns TooManyVersions where the reference runtime gives a tree."
+---
+
+# ISSUE-016: The GLR stack limit of 64 heads
+
+**Status:** open · **Phase:** none
+
+## Description
+The GLR stack of ztree holds at most `max_heads` = 64 heads (`src/stack.zig`). The reference runtime has no such limit. A reduce can split the stack into more versions for a short time. The parser then condenses them to 6. The C grammar on the libstdc++ header `/usr/include/c++/13/bits/stl_algobase.h` (C++ code read as C, with many syntax errors) needs more than 64 heads. ztree then returns `TooManyVersions`, and the C ABI returns `ZTREE_ERROR_LIMIT_REACHED`. The reference runtime gives a tree.
+
+With `max_heads` = 256, ztree gives the same tree as the reference for this file. The differential step found the file during [ISSUE-011](/issues/issue-011-the-flat-tree-and-the-node-api--01a1ef92fe81.md). It is the only failure in 903 files.
+
+## Acceptance Criteria
+- [ ] Find the largest head count that the reference runtime reaches on the differential corpus and on large C and C++ trees.
+- [ ] Set `max_heads` from that count with a margin, and record the bound in an ADR ([ADR-0003](/decisions/adr-0003-adapt-the-nasa-power-of-10-rules-to-ztree--01a1e96b8f17.md) needs a fixed bound).
+- [ ] Add a test sample that needs more than 64 heads.
+
+## Related
+- [ISSUE-003](/issues/issue-003-parser-core-with-the-subtree-arena-and-the-glr-stack--01a1e96b8f58.md)

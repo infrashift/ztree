@@ -96,7 +96,108 @@ fn dumpChildren(t: *const Subtree, out: *std.ArrayList(NodeRecord), gpa: std.mem
     }
 }
 
-pub const Totals = struct { compared: usize = 0, with_errors: usize = 0, comments: usize = 0, last_had_error: bool = false };
+pub const Totals = struct { compared: usize = 0, with_errors: usize = 0, comments: usize = 0, nodes: usize = 0, field_children: usize = 0, overrides: usize = 0, last_had_error: bool = false };
+
+const FlatNode = ztree.flat.Node;
+const none = ztree.flat.none;
+const RefLinks = extern struct { parent: u32, next_sibling: u32, prev_sibling: u32, next_named_sibling: u32, prev_named_sibling: u32, children_ok: u32 };
+const RefFieldChild = extern struct { node: u32, field_id: u32, child: u32 };
+extern fn ztree_ref_flat(lang: *const abi.Language14, src: [*]const u8, len: u32, recs: [*]FlatNode, links: [*]RefLinks, cap: u32, fields: [*]RefFieldChild, field_cap: u32, field_count: *u32) u32;
+
+/// The links of node `i` of a flat tree, as the Go binding finds them. The
+/// reference finds the next sibling by byte position, so it skips each
+/// sibling that ends where node `i` ends: an empty node such as a MISSING
+/// node.
+fn flatLinks(nodes: []const FlatNode, i: u32) RefLinks {
+    var links = RefLinks{ .parent = nodes[i].parent, .next_sibling = none, .prev_sibling = none, .next_named_sibling = none, .prev_named_sibling = none, .children_ok = 1 };
+    var next = nodes[i].next_sibling;
+    while (next != none and nodes[next].end_byte <= nodes[i].end_byte) next = nodes[next].next_sibling;
+    links.next_sibling = next;
+    while (next != none and !nodes[next].isNamed()) next = nodes[next].next_sibling;
+    links.next_named_sibling = next;
+    if (nodes[i].parent == none) return links;
+    var c = nodes[i].parent + 1;
+    while (c != i) : (c = nodes[c].next_sibling) {
+        links.prev_sibling = c;
+        if (nodes[c].isNamed()) links.prev_named_sibling = c;
+    }
+    return links;
+}
+
+/// Compare the flat tree with the TSNode API of the reference: each record,
+/// the parent and the siblings of each node, the children, and the result
+/// of `ts_node_child_by_field_id` for each node and each field (ISSUE-011).
+fn compareFlat(gpa: std.mem.Allocator, arena: std.mem.Allocator, lang: *const abi.Language14, name: []const u8, text: []const u8, root: *const Subtree, totals: *Totals) !void {
+    const counts = try ztree.flat.flatten(arena, lang, root, &.{}, &.{});
+    const count = counts.nodes;
+    const ours = try arena.alloc(FlatNode, count);
+    const overrides = try arena.alloc(ztree.flat.FieldOverride, counts.overrides);
+    try std.testing.expectEqual(counts, try ztree.flat.flatten(arena, lang, root, ours, overrides));
+    var sexp: std.Io.Writer.Allocating = .init(gpa);
+    defer sexp.deinit();
+    try ztree.flat.writeSexp(arena, lang, ours, text, &sexp.writer);
+    var want: std.Io.Writer.Allocating = .init(gpa);
+    defer want.deinit();
+    try ztree.tree.writeVisibleSexp(arena, lang, root, text, &want.writer);
+    if (!std.mem.eql(u8, want.written(), sexp.written())) {
+        const a = want.written();
+        const b = sexp.written();
+        const at = std.mem.indexOfDiff(u8, a, b).?;
+        const from = at -| 200;
+        std.debug.print("{s}: the S-expression of the flat tree differs at {d}\n tree {s}\n flat {s}\n", .{ name, at, a[from..@min(a.len, at + 80)], b[from..@min(b.len, at + 80)] });
+        return error.TestUnexpectedResult;
+    }
+    const cap: u32 = @intCast(count + 1);
+    const ref = try arena.alloc(FlatNode, cap);
+    const links = try arena.alloc(RefLinks, cap);
+    const fields = try arena.alloc(RefFieldChild, cap * 4);
+    var field_count: u32 = 0;
+    const n = ztree_ref_flat(lang, text.ptr, @intCast(text.len), ref.ptr, links.ptr, cap, fields.ptr, @intCast(fields.len), &field_count);
+    if (n != count) {
+        std.debug.print("{s}: the reference has {d} nodes, the flat tree has {d}\n", .{ name, n, count });
+        return error.TestUnexpectedResult;
+    }
+    for (ref[0..n], ours, links[0..n], 0..) |r, o, l, i| {
+        const fl = flatLinks(ours, @intCast(i));
+        if (std.meta.eql(r, o) and std.meta.eql(l, fl)) continue;
+        std.debug.print("{s}: flat node {d} ({s}) differs\n ref   {any}\n       {any}\n ztree {any}\n       {any}\n", .{ name, i, ztree.tree.symbolName(lang, r.symbol), r, l, o, fl });
+        if (o.next_sibling != none) std.debug.print(" next: {s} {any}\n", .{ ztree.tree.symbolName(lang, ours[o.next_sibling].symbol), ours[o.next_sibling] });
+        return error.TestUnexpectedResult;
+    }
+    try compareFieldChildren(arena, lang, name, ours, overrides, fields[0..field_count]);
+    totals.overrides += overrides.len;
+    totals.nodes += n;
+    totals.field_children += field_count;
+}
+
+/// Compare `ts_node_child_by_field_id` with the lookup of the Go binding:
+/// the override of the node and the field, else the first child in the field.
+fn compareFieldChildren(arena: std.mem.Allocator, lang: *const abi.Language14, name: []const u8, nodes: []const FlatNode, overrides: []const ztree.flat.FieldOverride, ref: []const RefFieldChild) !void {
+    const first = try arena.alloc(u32, lang.field_count + 1);
+    var r: usize = 0;
+    var o: usize = 0;
+    for (nodes, 0..) |node, i| {
+        if (node.child_count == 0) continue;
+        @memset(first, none);
+        var c: u32 = @intCast(i + 1);
+        while (c != none) : (c = nodes[c].next_sibling) {
+            if (first[nodes[c].field_id] == none) first[nodes[c].field_id] = c;
+        }
+        // The overrides of a node are adjacent, in node order.
+        while (o < overrides.len and overrides[o].node == i) : (o += 1) first[overrides[o].field_id] = overrides[o].child;
+        for (first[1..], 1..) |child, f| {
+            const want: u32 = if (r < ref.len and ref[r].node == i and ref[r].field_id == f) ref[r].child else none;
+            if (want != none) r += 1;
+            if (want == child) continue;
+            std.debug.print("{s}: node {d} ({s}) field {s}: ref child {d}, ztree child {d}\n", .{ name, i, ztree.tree.symbolName(lang, node.symbol), std.mem.span(lang.field_names.?[f].?), want, child });
+            var d: u32 = @intCast(i + 1);
+            while (d != none) : (d = nodes[d].next_sibling) std.debug.print("  child {d} {s} field {d} {d}..{d}\n", .{ d, ztree.tree.symbolName(lang, nodes[d].symbol), nodes[d].field_id, nodes[d].start_byte, nodes[d].end_byte });
+            return error.TestUnexpectedResult;
+        }
+    }
+    try std.testing.expectEqual(ref.len, r);
+    try std.testing.expectEqual(overrides.len, o);
+}
 
 /// Compare the S-expression of `root` with `ts_node_string` of the reference.
 fn compareSexp(gpa: std.mem.Allocator, arena: std.mem.Allocator, lang: *const abi.Language14, name: []const u8, text: []const u8, root: *const Subtree) !void {
@@ -154,6 +255,7 @@ pub fn check(lang_name: []const u8, name: []const u8, text: []const u8, totals: 
     try compareDumps(lang, lang_name, name, ref[0..n], ours.items);
     try compareSexp(gpa, arena_state.allocator(), lang, name, text, root);
     try compareWalk(arena_state.allocator(), lang, name, text, root);
+    try compareFlat(gpa, arena_state.allocator(), lang, name, text, root, totals);
     totals.comments += try compareComments(arena_state.allocator(), std.meta.stringToEnum(grammars.Lang, lang_name).?, name, text, root);
     totals.compared += 1;
 }

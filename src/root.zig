@@ -5,6 +5,7 @@ const std = @import("std");
 
 pub const abi = @import("abi.zig");
 pub const comments = @import("comments.zig");
+pub const flat = @import("flat.zig");
 pub const grammars = @import("grammars.zig");
 pub const length = @import("length.zig");
 pub const language = @import("language.zig");

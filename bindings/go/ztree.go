@@ -1,6 +1,8 @@
-// Package ztree extracts the comments of Go, Zig, Python, C, C++ and Rust source
-// with ztree, a Tree-sitter runtime in Zig. It calls the C ABI of
-// libztree.a (include/ztree.h of the ztree repository).
+// Package ztree parses Go, Zig, Python, C, C++ and Rust source with ztree,
+// a Tree-sitter runtime in Zig. ExtractComments gives the comments of a
+// source. Parser gives its syntax tree, with the node API of go-tree-sitter.
+// The package calls the C ABI of libztree.a (include/ztree.h of the ztree
+// repository).
 //
 // Build the library before the package: run `zig build lib --release` in
 // the ztree root. The cgo flags read zig-out/include and zig-out/lib there.

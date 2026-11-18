@@ -190,9 +190,28 @@ fn runZtree(gpa: std.mem.Allocator, lang: grammars.Lang, ex: Example) !struct { 
     var w: std.Io.Writer.Allocating = .init(gpa);
     defer w.deinit();
     try ztree.tree.writeSexp(arena_state.allocator(), grammars.language(lang), root, &w.writer);
+    try checkFlat(arena_state.allocator(), lang, ex, root);
     const actual = if (ex.has_fields) try gpa.dupe(u8, w.written()) else try stripFields(gpa, w.written());
     const pass = if (ex.expectation == .err) root.errorCost() > 0 else std.mem.eql(u8, actual, ex.output);
     return .{ if (pass) .pass else .fail, actual };
+}
+
+/// Flatten the tree of one example. Its S-expression must equal the
+/// S-expression of the visible nodes of the tree (ISSUE-011).
+fn checkFlat(arena: std.mem.Allocator, lang: grammars.Lang, ex: Example, root: *const ztree.subtree.Subtree) !void {
+    const language = grammars.language(lang);
+    var tree_w: std.Io.Writer.Allocating = .init(arena);
+    try ztree.tree.writeVisibleSexp(arena, language, root, ex.input, &tree_w.writer);
+    const want = tree_w.written();
+    const n = (try ztree.flat.flatten(arena, language, root, &.{}, &.{})).nodes;
+    const nodes = try arena.alloc(ztree.flat.Node, n);
+    try std.testing.expectEqual(n, (try ztree.flat.flatten(arena, language, root, nodes, &.{})).nodes);
+    var w: std.Io.Writer.Allocating = .init(arena);
+    try ztree.flat.writeSexp(arena, language, nodes, ex.input, &w.writer);
+    if (!std.mem.eql(u8, want, w.written())) {
+        std.debug.print("flat tree differs: {s}: {s}\n tree {s}\n flat {s}\n", .{ @tagName(lang), ex.name, want, w.written() });
+        return error.TestUnexpectedResult;
+    }
 }
 
 /// Run one example on the reference runtime: the outcome only.

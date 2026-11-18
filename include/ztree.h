@@ -1,5 +1,6 @@
 /*
- * ztree: comment extraction with a Tree-sitter runtime in Zig.
+ * ztree: a batch Tree-sitter runtime in Zig. It gives the comments of a
+ * source file and its syntax tree as a flat array of nodes.
  *
  * The C ABI of libztree.a. The wiki spec "ztree C ABI" defines each rule.
  * The functions take no callbacks and keep no global state. Two threads can
@@ -18,7 +19,7 @@ extern "C" {
 #endif
 
 /* The version of this header. ztree_abi_version() returns the version of the library. */
-#define ZTREE_ABI_VERSION 2
+#define ZTREE_ABI_VERSION 3
 
 /* Grammars. */
 #define ZTREE_LANG_GO 0
@@ -30,7 +31,7 @@ extern "C" {
 
 /* Status codes. */
 #define ZTREE_OK 0
-#define ZTREE_ERROR_BUFFER_TOO_SMALL 1 /* *count_out holds the number of comments. */
+#define ZTREE_ERROR_BUFFER_TOO_SMALL 1 /* *count_out holds the number of items. */
 #define ZTREE_ERROR_INVALID_ARGUMENT 2
 #define ZTREE_ERROR_SOURCE_TOO_LARGE 3 /* More than ZTREE_MAX_SOURCE_BYTES. */
 #define ZTREE_ERROR_OUT_OF_MEMORY 4
@@ -71,6 +72,110 @@ uint32_t ztree_abi_version(void);
 int32_t ztree_extract_comments(uint32_t lang, const uint8_t *src, size_t len,
                                ztree_span *spans_out, size_t max_spans,
                                size_t *count_out);
+
+/*
+ * The syntax tree (ztree_parse). The nodes are the nodes that a
+ * Tree-sitter cursor visits, in pre-order: the root, then each named and
+ * anonymous node. Node 0 is the root. The first child of a node with
+ * children is at the next index.
+ */
+
+/* An index that names no node: the parent of the root, or the next sibling of the last child. */
+#define ZTREE_NONE 0xffffffffu
+
+/* The symbol of an ERROR node. */
+#define ZTREE_SYMBOL_ERROR 0xffffu
+
+/* The bits of ztree_node.flags. */
+#define ZTREE_NODE_NAMED 0x1u     /* ts_node_is_named */
+#define ZTREE_NODE_EXTRA 0x2u     /* ts_node_is_extra */
+#define ZTREE_NODE_MISSING 0x4u   /* ts_node_is_missing */
+#define ZTREE_NODE_ERROR 0x8u     /* ts_node_is_error */
+#define ZTREE_NODE_HAS_ERROR 0x10u /* ts_node_has_error */
+
+/*
+ * One node. Bytes, rows and columns follow the rules of ztree_span. The
+ * size is 48 bytes.
+ */
+typedef struct ztree_node {
+  uint32_t start_byte;
+  uint32_t end_byte;
+  uint32_t start_row;
+  uint32_t start_column;
+  uint32_t end_row;
+  uint32_t end_column;
+  uint32_t parent;            /* ZTREE_NONE for the root. */
+  uint32_t next_sibling;      /* ZTREE_NONE for the last child. */
+  uint32_t child_count;       /* ts_node_child_count */
+  uint32_t named_child_count; /* ts_node_named_child_count */
+  uint16_t symbol;            /* ts_node_symbol: the public symbol, with the alias applied. */
+  uint16_t field_id;          /* ts_tree_cursor_current_field_id, or 0. */
+  uint16_t flags;             /* ZTREE_NODE_* bits. */
+  uint16_t reserved;          /* 0. */
+} ztree_node;
+
+/*
+ * A field lookup that the first-child rule does not give. The first-child
+ * rule: ts_node_child_by_field_id(node, field_id) gives the first child of
+ * node whose field_id is field_id, or no node. An override gives child in
+ * place of that result, or ZTREE_NONE for no node. Overrides are rare: an
+ * ERROR node has no fields, and an inherited field can name a grandchild.
+ */
+typedef struct ztree_field_override {
+  uint32_t node;
+  uint32_t child; /* ZTREE_NONE for no node. */
+  uint16_t field_id;
+  uint16_t reserved; /* 0. */
+} ztree_field_override;
+
+/*
+ * Parse src[0..len) with the grammar lang. Write the first max_nodes nodes
+ * of the tree to nodes_out and the number of nodes to *node_count_out. A
+ * tree has 1 or more nodes. Write the first max_overrides field overrides
+ * to overrides_out, in node order, and their number to *override_count_out.
+ *
+ * Returns ZTREE_OK when each count is at most the size of its buffer.
+ * Returns ZTREE_ERROR_BUFFER_TOO_SMALL when a count is more than the size of
+ * its buffer. Both counts are then valid, and each buffer holds its first
+ * records. A link (parent or next_sibling) can then name a node that is not
+ * in the buffer. Each other status sets both counts to 0.
+ *
+ * src can be NULL when len is 0. A buffer can be NULL when its size is 0.
+ * A NULL count pointer gives ZTREE_ERROR_INVALID_ARGUMENT.
+ */
+int32_t ztree_parse(uint32_t lang, const uint8_t *src, size_t len,
+                    ztree_node *nodes_out, size_t max_nodes,
+                    size_t *node_count_out,
+                    ztree_field_override *overrides_out, size_t max_overrides,
+                    size_t *override_count_out);
+
+/*
+ * Grammar metadata. Each function gives 0 or NULL for an unknown lang. A
+ * name points into the static data of the library.
+ */
+
+/* The bits of ztree_language_symbol_flags. */
+#define ZTREE_SYMBOL_VISIBLE 0x1u
+#define ZTREE_SYMBOL_NAMED 0x2u
+#define ZTREE_SYMBOL_SUPERTYPE 0x4u
+
+/* The Tree-sitter ABI version of the grammar: 14 or 15. */
+uint32_t ztree_language_abi_version(uint32_t lang);
+
+/* The number of symbols, aliases included (ts_language_symbol_count). */
+uint32_t ztree_language_symbol_count(uint32_t lang);
+
+/* The largest field id. Field ids start at 1. */
+uint32_t ztree_language_field_count(uint32_t lang);
+
+/* The name of a symbol, "ERROR" for ZTREE_SYMBOL_ERROR, or NULL out of range. */
+const char *ztree_language_symbol_name(uint32_t lang, uint32_t symbol);
+
+/* The ZTREE_SYMBOL_* bits of a symbol, or 0 out of range. */
+uint32_t ztree_language_symbol_flags(uint32_t lang, uint32_t symbol);
+
+/* The name of a field, or NULL for 0 and out of range. */
+const char *ztree_language_field_name(uint32_t lang, uint32_t field);
 
 #ifdef __cplusplus
 }

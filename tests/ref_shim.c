@@ -169,6 +169,7 @@ uint32_t ztree_ref_parse_dump(const TSLanguage *lang, const char *src, uint32_t 
 }
 
 // ----- S-expressions and comment spans for tests/parser_test.zig -----
+#include <stdlib.h>
 #include <string.h>
 
 // Write ts_node_string of the root to `out`. Return the full length.
@@ -252,4 +253,153 @@ done:
   ts_tree_delete(tree);
   ts_parser_delete(parser);
   return n;
+}
+
+// ----- The flat tree and the TSNode API for tests/differential.zig -----
+
+#define ZTREE_REF_NONE 0xffffffffu
+#define ZTREE_REF_UNKNOWN 0xfffffffeu
+
+// The layout of ztree_node (include/ztree.h).
+typedef struct {
+  uint32_t start_byte, end_byte, start_row, start_column, end_row, end_column;
+  uint32_t parent, next_sibling, child_count, named_child_count;
+  uint16_t symbol, field_id, flags, reserved;
+} ZtreeFlatNode;
+
+// The siblings and the parent of a node from the TSNode API, as indices.
+// `children_ok` is 0 when ts_node_child or ts_node_named_child disagrees
+// with the cursor order of the children.
+typedef struct {
+  uint32_t parent, next_sibling, prev_sibling, next_named_sibling, prev_named_sibling;
+  uint32_t children_ok;
+} ZtreeRefLinks;
+
+typedef struct {
+  uint32_t node, field_id, child;
+} ZtreeRefFieldChild;
+
+typedef struct {
+  const void **keys;
+  uint32_t *values;
+  uint32_t mask;
+} IdTable;
+
+static uint32_t id_hash(const void *id, uint32_t mask) {
+  uintptr_t x = (uintptr_t)id;
+  x ^= x >> 17;
+  x *= 0x9e3779b97f4a7c15ull;
+  return (uint32_t)(x >> 32) & mask;
+}
+
+static void id_put(IdTable *t, const void *id, uint32_t value) {
+  uint32_t h = id_hash(id, t->mask);
+  while (t->keys[h] != NULL) h = (h + 1) & t->mask;
+  t->keys[h] = id;
+  t->values[h] = value;
+}
+
+static uint32_t id_index(const IdTable *t, TSNode node) {
+  if (ts_node_is_null(node)) return ZTREE_REF_NONE;
+  uint32_t h = id_hash(node.id, t->mask);
+  while (t->keys[h] != NULL) {
+    if (t->keys[h] == node.id) return t->values[h];
+    h = (h + 1) & t->mask;
+  }
+  return ZTREE_REF_UNKNOWN;
+}
+
+static uint16_t ref_flags(TSNode node) {
+  return (uint16_t)(ts_node_is_named(node) | ts_node_is_extra(node) << 1 | ts_node_is_missing(node) << 2 |
+                    ts_node_is_error(node) << 3 | ts_node_has_error(node) << 4);
+}
+
+// Check ts_node_child and ts_node_named_child against the cursor order.
+static uint32_t children_agree(const TSNode *nodes, const ZtreeFlatNode *recs, uint32_t i) {
+  TSNode node = nodes[i];
+  uint32_t c = recs[i].child_count > 0 ? i + 1 : ZTREE_REF_NONE;
+  uint32_t named = 0;
+  for (uint32_t j = 0; j < recs[i].child_count; j++) {
+    if (c == ZTREE_REF_NONE || !ts_node_eq(ts_node_child(node, j), nodes[c])) return 0;
+    if (recs[c].flags & 1) {
+      if (!ts_node_eq(ts_node_named_child(node, named), nodes[c])) return 0;
+      named++;
+    }
+    c = recs[c].next_sibling;
+  }
+  return c == ZTREE_REF_NONE && named == recs[i].named_child_count;
+}
+
+// Walk the reference tree with a TSTreeCursor and write one record for
+// each node, from the TSNode API. Write the links of each node and the
+// result of ts_node_child_by_field_id for each field. Return the number of
+// nodes, or 0 when a buffer is too small.
+uint32_t ztree_ref_flat(const TSLanguage *lang, const char *src, uint32_t len, ZtreeFlatNode *recs,
+                        ZtreeRefLinks *links, uint32_t cap, ZtreeRefFieldChild *fields,
+                        uint32_t field_cap, uint32_t *field_count) {
+  TSParser *parser = ts_parser_new();
+  ts_parser_set_language(parser, lang);
+  TSTree *tree = ts_parser_parse_string(parser, NULL, src, len);
+  TSTreeCursor cursor = ts_tree_cursor_new(ts_tree_root_node(tree));
+  TSNode *nodes = malloc(sizeof(TSNode) * cap);
+  uint32_t *owners = malloc(sizeof(uint32_t) * cap);
+  uint32_t *last_child = malloc(sizeof(uint32_t) * cap);
+  uint32_t depth = 0, n = 0;
+  bool ok = true;
+  for (;;) {
+    if (n >= cap) { ok = false; break; }
+    TSNode node = ts_tree_cursor_current_node(&cursor);
+    TSPoint s = ts_node_start_point(node), e = ts_node_end_point(node);
+    uint32_t parent = depth > 0 ? owners[depth - 1] : ZTREE_REF_NONE;
+    nodes[n] = node;
+    recs[n] = (ZtreeFlatNode){ts_node_start_byte(node), ts_node_end_byte(node), s.row, s.column, e.row, e.column,
+                              parent, ZTREE_REF_NONE, ts_node_child_count(node), ts_node_named_child_count(node),
+                              ts_node_symbol(node), ts_tree_cursor_current_field_id(&cursor), ref_flags(node), 0};
+    if (depth > 0) {
+      if (last_child[depth - 1] != ZTREE_REF_NONE) recs[last_child[depth - 1]].next_sibling = n;
+      last_child[depth - 1] = n;
+    }
+    n++;
+    if (ts_tree_cursor_goto_first_child(&cursor)) {
+      owners[depth] = n - 1;
+      last_child[depth] = ZTREE_REF_NONE;
+      depth++;
+      continue;
+    }
+    while (!ts_tree_cursor_goto_next_sibling(&cursor)) {
+      if (!ts_tree_cursor_goto_parent(&cursor)) goto walked;
+      depth--;
+    }
+  }
+walked:;
+  uint32_t size = 1;
+  while (size < 2 * n + 2) size <<= 1;
+  IdTable table = {calloc(size, sizeof(void *)), malloc(sizeof(uint32_t) * size), size - 1};
+  for (uint32_t i = 0; ok && i < n; i++) id_put(&table, nodes[i].id, i);
+  uint32_t fc = 0;
+  uint32_t field_ids = ts_language_field_count(lang);
+  for (uint32_t i = 0; ok && i < n; i++) {
+    TSNode node = nodes[i];
+    links[i] = (ZtreeRefLinks){id_index(&table, ts_node_parent(node)), id_index(&table, ts_node_next_sibling(node)),
+                               id_index(&table, ts_node_prev_sibling(node)),
+                               id_index(&table, ts_node_next_named_sibling(node)),
+                               id_index(&table, ts_node_prev_named_sibling(node)), children_agree(nodes, recs, i)};
+    if (recs[i].child_count == 0) continue;
+    for (uint32_t f = 1; f <= field_ids; f++) {
+      TSNode child = ts_node_child_by_field_id(node, (TSFieldId)f);
+      if (ts_node_is_null(child)) continue;
+      if (fc >= field_cap) { ok = false; break; }
+      fields[fc++] = (ZtreeRefFieldChild){i, f, id_index(&table, child)};
+    }
+  }
+  *field_count = fc;
+  free(table.keys);
+  free(table.values);
+  free(last_child);
+  free(owners);
+  free(nodes);
+  ts_tree_cursor_delete(&cursor);
+  ts_tree_delete(tree);
+  ts_parser_delete(parser);
+  return ok ? n : 0;
 }

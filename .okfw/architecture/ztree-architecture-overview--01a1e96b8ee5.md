@@ -7,7 +7,7 @@ tags:
   - "overview"
 created: "2026-11-17T06:11:42-06:00"
 timestamp: "2026-11-17T06:11:42-06:00"
-description: "The modules of ztree and the data flow of one parse, from source text to comment spans."
+description: "The modules of ztree and the data flow of one parse, from source text to comment spans and the flat tree."
 ---
 
 # ztree architecture overview
@@ -21,8 +21,8 @@ This note describes the modules of ztree and the data flow of one parse. [ADR-00
 4. The parser reads the parse table and moves each stack version: shift, reduce or accept.
 5. Error recovery adds ERROR and MISSING subtrees when no stack version can continue.
 6. The parser turns the arena of subtrees into a tree.
-7. The cursor walks the tree and collects the comment spans.
-8. The C ABI copies the spans into the buffer of the caller.
+7. The cursor walks the tree and collects the comment spans. Or the flattener writes the visible nodes as flat records and the field overrides ([ADR-0009](/decisions/adr-0009-field-overrides-and-the-node-rules-of-the-flat-tree--01a1f080b1ed.md)).
+8. The C ABI copies the spans or the records into the buffers of the caller.
 
 ## Modules
 | File | Responsibility | Phase |
@@ -39,8 +39,9 @@ This note describes the modules of ztree and the data flow of one parse. [ADR-00
 | `src/recover.zig` | Error recovery. Valid input uses it too. | 3 |
 | `src/tree.zig` | Nodes, the cursor and S-expression output. | 5 |
 | `src/comments.zig` | Comment node types per language and span extraction. | 5 |
+| `src/flat.zig` | The flat tree: one record for each visible node, the field overrides, and the S-expression of the records. | 9 |
 | `src/capi.zig` | The exported C ABI and the panic handler of `libztree.a`. See the [C ABI spec](/specs/ztree-c-abi--01a1ec92dc4f.md). | 7 |
-| `bindings/go/` | The Go binding (cgo) of the C ABI. | 7 |
+| `bindings/go/` | The Go binding (cgo) of the C ABI: `ExtractComments`, and `Parser`, `Tree`, `Node` and `TreeCursor` with the method names of go-tree-sitter. | 7, 9 |
 
 ## Boundaries
 - `libztree.a` needs only libc. It holds no reference runtime, prints no stack trace and starts no thread.

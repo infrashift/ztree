@@ -19,4 +19,5 @@
 * [ISSUE-013: The query compiler](issue-013-the-query-compiler--01a1ef92fe8e.md) - The query compiler.
 * [ISSUE-014: Query execution](issue-014-query-execution--01a1ef92fe94.md) - Query execution.
 * [ISSUE-015: Handoff to semscope](issue-015-handoff-to-semscope--01a1ef92fe9b.md) - Handoff to semscope.
+* [ISSUE-016: The GLR stack limit of 64 heads](issue-016-the-glr-stack-limit-of-64-heads--01a1f080f76c.md) - The C grammar needs more than 64 stack heads for one libstdc++ header, so ztree returns TooManyVersions where the reference runtime gives a tree.
 

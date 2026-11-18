@@ -7,7 +7,8 @@ Work on one phase at a time (`CLAUDE.md` rule 1). Each phase from 1 to 13 has a 
 Loop: implement one task, run `zmake check`, and repeat until green. Then update the wiki and commit once per phase.
 
 - Architecture: [ztree architecture overview](.okfw/architecture/ztree-architecture-overview--01a1e96b8ee5.md)
-- Decisions: [ADR-0001 wiki](.okfw/decisions/adr-0001-adopt-an-okf-wiki-okfw-for-project-knowledge--01a1e96b8ef6.md) · [ADR-0002 toolchain](.okfw/decisions/adr-0002-zig-0-17-1-the-standard-library-and-vendored-c-grammars--01a1e96b8f06.md) · [ADR-0003 Power of 10](.okfw/decisions/adr-0003-adapt-the-nasa-power-of-10-rules-to-ztree--01a1e96b8f17.md) · [ADR-0004 scope](.okfw/decisions/adr-0004-a-batch-tree-sitter-runtime-for-abi-14-and-15--01a1e96b8f27.md) · [ADR-0005 arena](.okfw/decisions/adr-0005-one-arena-per-parse-no-reference-counts-and-no-balance-step--01a1ebbb7488.md) · [ADR-0006 Zig grammar](.okfw/decisions/adr-0006-a-patched-zig-grammar-for-zig-0-17-and-empty-containers--01a1ec8a934e.md) · [ADR-0007 semscope scope](.okfw/decisions/adr-0007-ztree-is-the-tree-sitter-service-of-lexis-and-semscope--01a1ef926073.md) · [ADR-0008 flat tree ABI](.okfw/decisions/adr-0008-a-flat-tree-and-a-compiled-query-blob-in-caller-memory--01a1ef929e5c.md)
+- Decisions, part 1: [ADR-0001 wiki](.okfw/decisions/adr-0001-adopt-an-okf-wiki-okfw-for-project-knowledge--01a1e96b8ef6.md) · [ADR-0002 toolchain](.okfw/decisions/adr-0002-zig-0-17-1-the-standard-library-and-vendored-c-grammars--01a1e96b8f06.md) · [ADR-0003 Power of 10](.okfw/decisions/adr-0003-adapt-the-nasa-power-of-10-rules-to-ztree--01a1e96b8f17.md) · [ADR-0004 scope](.okfw/decisions/adr-0004-a-batch-tree-sitter-runtime-for-abi-14-and-15--01a1e96b8f27.md)
+- Decisions, part 2: [ADR-0005 arena](.okfw/decisions/adr-0005-one-arena-per-parse-no-reference-counts-and-no-balance-step--01a1ebbb7488.md) · [ADR-0006 Zig grammar](.okfw/decisions/adr-0006-a-patched-zig-grammar-for-zig-0-17-and-empty-containers--01a1ec8a934e.md) · [ADR-0007 semscope scope](.okfw/decisions/adr-0007-ztree-is-the-tree-sitter-service-of-lexis-and-semscope--01a1ef926073.md) · [ADR-0008 flat tree ABI](.okfw/decisions/adr-0008-a-flat-tree-and-a-compiled-query-blob-in-caller-memory--01a1ef929e5c.md) · [ADR-0009 field overrides](.okfw/decisions/adr-0009-field-overrides-and-the-node-rules-of-the-flat-tree--01a1f080b1ed.md)
 - Rules: ADR-0003 for the code. ASD-STE100 for all documentation.
 
 ## Phase 0 — Bootstrap
@@ -55,6 +56,7 @@ Tracking: [ISSUE-006](.okfw/issues/issue-006-conformance-with-grammar-corpus-tes
 
 ## Open issues
 - [ISSUE-009](.okfw/issues/issue-009-rare-zig-forms-that-the-patched-grammar-cannot-read--01a1ec8ab913.md): rare Zig forms that the patched grammar cannot read
+- [ISSUE-016](.okfw/issues/issue-016-the-glr-stack-limit-of-64-heads--01a1f080f76c.md): the GLR stack limit of 64 heads
 
 Closed: [ISSUE-008](.okfw/issues/issue-008-zig-0-17-keywords-in-the-zig-grammar--01a1ebfde99b.md) by [ADR-0006](.okfw/decisions/adr-0006-a-patched-zig-grammar-for-zig-0-17-and-empty-containers--01a1ec8a934e.md).
 
@@ -72,10 +74,10 @@ Tracking: [ISSUE-010](.okfw/issues/issue-010-the-c-grammar--01a1ef92fe7b.md)
 
 ## Phase 9 — Flat tree and node API
 Tracking: [ISSUE-011](.okfw/issues/issue-011-the-flat-tree-and-the-node-api--01a1ef92fe81.md)
-- [ ] Flatten the finished tree into node records (`src/flat.zig`) and compare its S-expression with `tree.writeSexp`
-- [ ] Export `ztree_parse` and the language metadata functions
-- [ ] Compare each flat node with the reference `TSNode` API in the differential step
-- [ ] Add `Parser`, `Tree`, `Node` and `TreeCursor` to the Go binding
+- [x] Flatten the finished tree into node records (`src/flat.zig`) and compare its S-expression with `tree.writeSexp`
+- [x] Export `ztree_parse` and the language metadata functions
+- [x] Compare each flat node with the reference `TSNode` API in the differential step
+- [x] Add `Parser`, `Tree`, `Node` and `TreeCursor` to the Go binding
 
 ## Phase 10 — Bounded regex
 Tracking: [ISSUE-012](.okfw/issues/issue-012-a-bounded-regex-engine-for-match-predicates--01a1ef92fe88.md)
