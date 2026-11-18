@@ -101,6 +101,57 @@ pub fn build(b: *std.Build) void {
     sample_options.addOption([]const []const u8, "paths", &paths);
     parser_mod.addOptions("samples", sample_options);
     test_step.dependOn(&b.addRunArtifact(b.addTest(.{ .root_module = parser_mod })).step);
+
+    // Corpus conformance (ISSUE-006): `zig build conformance`.
+    const conformance_mod = b.createModule(.{
+        .root_source_file = b.path("tests/conformance_test.zig"),
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+        .imports = &.{.{ .name = "ztree", .module = mod }},
+    });
+    conformance_mod.addCSourceFile(.{ .file = b.path("tests/ref_shim.c"), .flags = &oracle_flags });
+    conformance_mod.addIncludePath(b.path("third_party/tree-sitter/lib/include"));
+    conformance_mod.addIncludePath(b.path("third_party/tree-sitter/lib/src"));
+    conformance_mod.linkLibrary(oracle);
+    const corpus_options = b.addOptions();
+    var corpus_langs: [parser_samples.len][]const u8 = undefined;
+    var corpus_paths: [parser_samples.len][]const u8 = undefined;
+    var corpus_count: usize = 0;
+    for (parser_samples) |sample| {
+        if (!std.mem.eql(u8, sample[1], "corpus")) continue;
+        corpus_langs[corpus_count] = sample[0];
+        corpus_paths[corpus_count] = sample[2];
+        corpus_count += 1;
+        conformance_mod.addAnonymousImport(sample[2], .{ .root_source_file = b.path(sample[2]) });
+    }
+    corpus_options.addOption([]const []const u8, "langs", corpus_langs[0..corpus_count]);
+    corpus_options.addOption([]const []const u8, "paths", corpus_paths[0..corpus_count]);
+    conformance_mod.addOptions("corpus", corpus_options);
+    const conformance_run = b.addRunArtifact(b.addTest(.{ .root_module = conformance_mod }));
+    b.step("conformance", "Check each grammar corpus example against its expected tree").dependOn(&conformance_run.step);
+
+    // The differential step on real files (ISSUE-006): `zig build differential`.
+    const diff_dirs = b.option([]const []const u8, "diff-dirs", "Directories for the differential step") orelse
+        &[_][]const u8{ "src", "tests", "scripts", "third_party/tree-sitter/lib/src" };
+    const diff_options = b.addOptions();
+    diff_options.addOption([]const []const u8, "dirs", diff_dirs);
+    diff_options.addOption(bool, "list_errors", b.option(bool, "diff-list-errors", "List each file whose tree has errors") orelse false);
+    const diff_mod = b.createModule(.{
+        .root_source_file = b.path("tests/diff_test.zig"),
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+        .imports = &.{.{ .name = "ztree", .module = mod }},
+    });
+    diff_mod.addCSourceFile(.{ .file = b.path("tests/ref_shim.c"), .flags = &oracle_flags });
+    diff_mod.addIncludePath(b.path("third_party/tree-sitter/lib/include"));
+    diff_mod.addIncludePath(b.path("third_party/tree-sitter/lib/src"));
+    diff_mod.linkLibrary(oracle);
+    diff_mod.addOptions("diff_options", diff_options);
+    const diff_run = b.addRunArtifact(b.addTest(.{ .root_module = diff_mod }));
+    diff_run.has_side_effects = true;
+    b.step("differential", "Parse real source files with ztree and the reference runtime").dependOn(&diff_run.step);
 }
 
 /// Sample inputs of the lexer differential test (tests/lexer_test.zig).

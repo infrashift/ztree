@@ -20,6 +20,8 @@ ztree is a batch Tree-sitter runtime in Zig. It follows the NASA Power of 10 rul
 Run these targets with `zmake`:
 - `zmake lint` runs `zig fmt --check` and `scripts/nasa-lint.py`.
 - `zmake test` runs `zig build test`.
+- `zmake conformance` checks each grammar corpus example against its expected tree.
+- `zmake differential` parses the source files of this repository with ztree and the reference runtime. For other directories, run `zig build differential --release -Ddiff-dirs=<dir>`.
 - `zmake build` runs `zig build`.
 - `zmake wiki` runs `okfw validate --all` and `okfw validate --okf`.
 - `zmake docs-style` runs `scripts/ste-check.py`.

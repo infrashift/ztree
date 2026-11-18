@@ -7,7 +7,7 @@ PYTHON ?= python3
 ZIG_SOURCES := build.zig build.zig.zon src tests
 
 ## check: run every gate (the default goal)
-@check: lint test wiki docs-style
+@check: lint test conformance differential wiki docs-style
 
 ## build: compile the library into zig-out
 @build:
@@ -16,6 +16,14 @@ ZIG_SOURCES := build.zig build.zig.zon src tests
 ## test: run the unit tests
 @test:
     $(ZIG) build test --summary all
+
+## conformance: check each grammar corpus example against its expected tree
+@conformance:
+    $(ZIG) build conformance --summary all
+
+## differential: parse the source files of this repository with ztree and the reference runtime
+@differential:
+    $(ZIG) build differential --summary all
 
 ## lint: check the formatting and the Power of 10 rules
 @lint:

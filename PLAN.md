@@ -49,9 +49,12 @@ Tracking: [ISSUE-005](.okfw/issues/issue-005-tree-api-cursor-and-comment-extract
 
 ## Phase 6 — Conformance
 Tracking: [ISSUE-006](.okfw/issues/issue-006-conformance-with-grammar-corpus-tests-and-the-reference-runtime--01a1e96b8f8a.md)
-- [ ] Run the corpus tests of each grammar in `zig build conformance`
-- [ ] Compare trees with the reference runtime for real source files
-- [ ] Add the `conformance` target to `ZMakefile`, `Makefile` and `check`
+- [x] Run the corpus tests of each grammar in `zig build conformance`
+- [x] Compare trees with the reference runtime for real source files
+- [x] Add the `conformance` target to `ZMakefile`, `Makefile` and `check`
+
+## Open issues
+- [ISSUE-008](.okfw/issues/issue-008-zig-0-17-keywords-in-the-zig-grammar--01a1ebfde99b.md): Zig 0.17 keywords in the Zig grammar
 
 ## Phase 7 — C ABI for Go
 Tracking: [ISSUE-007](.okfw/issues/issue-007-c-abi-and-static-library-for-go-callers--01a1e96b8f9a.md)
