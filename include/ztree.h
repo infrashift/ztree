@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 /* The version of this header. ztree_abi_version() returns the version of the library. */
-#define ZTREE_ABI_VERSION 4
+#define ZTREE_ABI_VERSION 5
 
 /* Grammars. */
 #define ZTREE_LANG_GO 0
@@ -39,6 +39,7 @@ extern "C" {
 #define ZTREE_ERROR_UNSUPPORTED_GRAMMAR 6
 #define ZTREE_ERROR_REGEX_SYNTAX 7      /* The Go regexp package rejects the pattern too. */
 #define ZTREE_ERROR_REGEX_UNSUPPORTED 8 /* Valid RE2 syntax that ztree does not read. */
+#define ZTREE_ERROR_QUERY 9             /* *error_out holds the error of the query. */
 
 /* The largest source, in bytes. */
 #define ZTREE_MAX_SOURCE_BYTES (16u * 1024u * 1024u)
@@ -178,6 +179,47 @@ uint32_t ztree_language_symbol_flags(uint32_t lang, uint32_t symbol);
 
 /* The name of a field, or NULL for 0 and out of range. */
 const char *ztree_language_field_name(uint32_t lang, uint32_t field);
+
+/*
+ * Queries. A compiled query is a blob with no pointers in caller memory. A
+ * caller can copy the blob and share it between threads. The blob is valid
+ * only for the ztree library that wrote it.
+ */
+
+/* The kinds of ztree_query_error. Kinds 1 to 6 are those of TSQueryError. */
+#define ZTREE_QUERY_ERROR_SYNTAX 1
+#define ZTREE_QUERY_ERROR_NODE_TYPE 2
+#define ZTREE_QUERY_ERROR_FIELD 3
+#define ZTREE_QUERY_ERROR_CAPTURE 4
+#define ZTREE_QUERY_ERROR_STRUCTURE 5  /* A pattern that the grammar cannot produce. */
+#define ZTREE_QUERY_ERROR_LANGUAGE 6
+#define ZTREE_QUERY_ERROR_PREDICATE 7  /* An unknown predicate, bad arguments, or a bad regex. */
+#define ZTREE_QUERY_ERROR_UNSUPPORTED 8 /* A supertype, a directive, or a regex outside the subset. */
+
+/* The largest query text, in bytes. */
+#define ZTREE_MAX_QUERY_BYTES (1024u * 1024u)
+
+/* The position of a query error. offset is a byte offset; row and column start at 0. */
+typedef struct ztree_query_error {
+  uint32_t kind;
+  uint32_t offset;
+  uint32_t row;
+  uint32_t column;
+} ztree_query_error;
+
+/*
+ * Compile the query src[0..len) for the grammar lang. Write the blob to
+ * blob_out when it fits, and its size to *blob_size_out. blob_out must be
+ * aligned to 4 bytes.
+ *
+ * Returns ZTREE_OK, or ZTREE_ERROR_BUFFER_TOO_SMALL with the size in
+ * *blob_size_out. Returns ZTREE_ERROR_QUERY with *error_out for an error in
+ * the query, and ZTREE_ERROR_LIMIT_REACHED for a query that needs more than
+ * a hard limit. blob_out can be NULL when blob_cap is 0.
+ */
+int32_t ztree_query_compile(uint32_t lang, const uint8_t *src, size_t len,
+                            uint8_t *blob_out, size_t blob_cap,
+                            size_t *blob_size_out, ztree_query_error *error_out);
 
 /*
  * Report in *matched_out whether the regex pattern[0..pattern_len) matches

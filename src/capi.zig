@@ -28,7 +28,7 @@ fn abortWithMessage(msg: []const u8, first_trace_addr: ?usize) noreturn {
 }
 
 /// `ZTREE_ABI_VERSION` of `include/ztree.h`. Change it with each change of the header.
-pub const abi_version: u32 = 4;
+pub const abi_version: u32 = 5;
 
 /// The status codes of `include/ztree.h`.
 pub const Status = enum(i32) {
@@ -41,6 +41,7 @@ pub const Status = enum(i32) {
     unsupported_grammar = 6,
     regex_syntax = 7,
     regex_unsupported = 8,
+    query_error = 9,
 };
 
 /// The `ZTREE_LANG_*` values of `include/ztree.h`. The values do not depend
@@ -205,6 +206,80 @@ test "ztree_regex_match matches and reports errors" {
     try std.testing.expectEqual(@as(i32, 1), matched);
     try std.testing.expectEqual(@as(i32, 2), ztree_regex_match(null, 1, null, 0, &matched, &offset));
     try std.testing.expectEqual(@as(i32, 2), ztree_regex_match("a", 1, "a", 1, null, &offset));
+}
+
+/// `ztree_query_error` of `include/ztree.h`.
+pub const QueryError = extern struct { kind: u32, offset: u32, row: u32, column: u32 };
+
+/// `ztree_query_compile`: see `include/ztree.h`.
+export fn ztree_query_compile(lang: u32, src: ?[*]const u8, len: usize, blob_out: ?[*]u8, blob_cap: usize, blob_size_out: ?*usize, error_out: ?*QueryError) callconv(.c) i32 {
+    const status = queryCompile(lang, src, len, blob_out, blob_cap, blob_size_out, error_out);
+    assert(status != .ok or blob_size_out.?.* <= blob_cap);
+    assert(status != .query_error or error_out.?.kind != 0);
+    return @backingInt(status);
+}
+
+fn queryCompile(lang_value: u32, src: ?[*]const u8, len: usize, blob_out: ?[*]u8, blob_cap: usize, blob_size_out: ?*usize, error_out: ?*QueryError) Status {
+    const size_out = blob_size_out orelse return .invalid_argument;
+    const err_out = error_out orelse return .invalid_argument;
+    size_out.* = 0;
+    err_out.* = .{ .kind = 0, .offset = 0, .row = 0, .column = 0 };
+    const lang = langFromC(lang_value) orelse return .invalid_argument;
+    if ((src == null and len > 0) or (blob_out == null and blob_cap > 0)) return .invalid_argument;
+    if (blob_out) |b| if (@intFromPtr(b) % ztree.query_blob.alignment != 0) return .invalid_argument;
+    if (len > ztree.query.max_query_bytes) return .limit_reached;
+    const source: []const u8 = if (src) |p| p[0..len] else "";
+    var arena_state = std.heap.ArenaAllocator.init(std.heap.c_allocator);
+    defer arena_state.deinit();
+    const arena = arena_state.allocator();
+    var failure = ztree.query.Failure{};
+    var reference_ub = false;
+    const q = ztree.query.compile(arena, grammars.language(lang), source, &failure, &reference_ub) catch |err| return queryStatus(err, source, failure, err_out);
+    const preds = ztree.query_predicates.compile(q, &failure) catch |err| return queryStatus(err, source, failure, err_out);
+    const out: []u8 = if (blob_out) |b| b[0..blob_cap] else &.{};
+    const size = ztree.query_blob.write(arena, lang_value, q, &preds, out) catch return .out_of_memory;
+    size_out.* = size;
+    assert(size > 0);
+    return if (size > blob_cap) .buffer_too_small else .ok;
+}
+
+/// The status of a failed compile. A query error gets its kind, offset, row and column.
+fn queryStatus(err: ztree.query.Error, source: []const u8, failure: ztree.query.Failure, out: *QueryError) Status {
+    switch (err) {
+        error.OutOfMemory => return .out_of_memory,
+        error.TooLarge => return .limit_reached,
+        error.QueryError => {},
+    }
+    assert(failure.kind != .none);
+    assert(failure.offset <= source.len);
+    const before = source[0..failure.offset];
+    const line_start = if (std.mem.lastIndexOfScalar(u8, before, '\n')) |i| i + 1 else 0;
+    out.* = .{ .kind = @backingInt(failure.kind), .offset = failure.offset, .row = @intCast(std.mem.count(u8, before, "\n")), .column = @intCast(failure.offset - line_start) };
+    return .query_error;
+}
+
+test "ztree_query_compile writes a blob or an error with its position" {
+    var blob: [4096]u8 align(4) = undefined;
+    var size: usize = 0;
+    var err: QueryError = undefined;
+    const q = "(function_declaration name: (identifier) @name)";
+    try std.testing.expectEqual(@as(i32, 0), ztree_query_compile(0, q, q.len, &blob, blob.len, &size, &err));
+    try std.testing.expect(size > @sizeOf(ztree.query_blob.Header));
+    const view = try ztree.query_blob.View.init(blob[0..size]);
+    try std.testing.expectEqualStrings("name", view.captureName(0));
+    try std.testing.expectEqual(@as(i32, 1), ztree_query_compile(0, q, q.len, &blob, 8, &size, &err));
+    const bad = "(identifier) @a\n  (no_such_node)";
+    try std.testing.expectEqual(@as(i32, 9), ztree_query_compile(0, bad, bad.len, &blob, blob.len, &size, &err));
+    try std.testing.expectEqual(QueryError{ .kind = 2, .offset = 19, .row = 1, .column = 3 }, err);
+    const pred = "((identifier) @a (#foo? @a))";
+    try std.testing.expectEqual(@as(i32, 9), ztree_query_compile(0, pred, pred.len, &blob, blob.len, &size, &err));
+    try std.testing.expectEqual(@as(u32, 7), err.kind);
+    try std.testing.expectEqual(@as(u32, 17), err.offset);
+    const re = "((identifier) @a (#match? @a \"\\\\pL\"))";
+    try std.testing.expectEqual(@as(i32, 9), ztree_query_compile(0, re, re.len, &blob, blob.len, &size, &err));
+    try std.testing.expectEqual(@as(u32, 8), err.kind);
+    try std.testing.expectEqual(@as(i32, 2), ztree_query_compile(6, q, q.len, &blob, blob.len, &size, &err));
+    try std.testing.expectEqual(@as(i32, 2), ztree_query_compile(0, q, q.len, blob[1..].ptr, 8, &size, &err));
 }
 
 /// The grammar of a `ZTREE_LANG_*` value, or null.

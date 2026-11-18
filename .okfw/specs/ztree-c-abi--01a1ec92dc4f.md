@@ -13,7 +13,7 @@ description: "The C ABI of libztree.a: ztree_extract_comments, ztree_parse, the 
 
 # ztree C ABI
 
-**Version:** 4 (`ZTREE_ABI_VERSION`). Version 2 adds `ZTREE_LANG_CPP`. Version 3 adds `ztree_parse` and the language functions. Version 4 adds `ztree_regex_match` and status codes 7 and 8 ([ADR-0010](/decisions/adr-0010-a-pike-vm-for-an-re2-subset--01a1f0902c3e.md)) ([ADR-0008](/decisions/adr-0008-a-flat-tree-and-a-compiled-query-blob-in-caller-memory--01a1ef929e5c.md), [ADR-0009](/decisions/adr-0009-field-overrides-and-the-node-rules-of-the-flat-tree--01a1f080b1ed.md)).
+**Version:** 5 (`ZTREE_ABI_VERSION`). Version 2 adds `ZTREE_LANG_CPP`. Version 3 adds `ztree_parse` and the language functions. Version 5 adds `ztree_query_compile` and status code 9 ([ADR-0011](/decisions/adr-0011-a-structural-port-of-the-reference-query-compiler--01a1f0a8133a.md)). Version 4 adds `ztree_regex_match` and status codes 7 and 8 ([ADR-0010](/decisions/adr-0010-a-pike-vm-for-an-re2-subset--01a1f0902c3e.md)) ([ADR-0008](/decisions/adr-0008-a-flat-tree-and-a-compiled-query-blob-in-caller-memory--01a1ef929e5c.md), [ADR-0009](/decisions/adr-0009-field-overrides-and-the-node-rules-of-the-flat-tree--01a1f080b1ed.md)).
 **Header:** `include/ztree.h`
 **Library:** `zig-out/lib/libztree.a`, from `zig build lib --release`
 **Source:** [ISSUE-007](/issues/issue-007-c-abi-and-static-library-for-go-callers--01a1e96b8f9a.md), [ISSUE-011](/issues/issue-011-the-flat-tree-and-the-node-api--01a1ef92fe81.md)
@@ -62,6 +62,24 @@ Each function takes a `ZTREE_LANG_*` value and gives 0 or NULL for an unknown va
 | `ztree_language_symbol_flags(lang, symbol)` | The bits `ZTREE_SYMBOL_VISIBLE`, `ZTREE_SYMBOL_NAMED` and `ZTREE_SYMBOL_SUPERTYPE`. |
 | `ztree_language_field_name(lang, field)` | The name, or NULL for 0 and out of range. |
 
+### `int32_t ztree_query_compile(lang, src, len, blob_out, blob_cap, blob_size_out, error_out)`
+The function compiles a query for a grammar and writes a blob with no pointers to `blob_out`. The address of `blob_out` must be a multiple of 4. A caller can copy the blob and share it between threads. The blob is valid only for the library that wrote it: a header holds a magic number, a version and a CRC-32.
+
+- Code 1 gives the size of the blob in `*blob_size_out`.
+- Code 9 (`ZTREE_ERROR_QUERY`) fills `*error_out`: the kind, the byte offset, the row and the column. Rows and columns start at 0.
+- Code 5 is a query of more than `ZTREE_MAX_QUERY_BYTES` (1 MiB), or a query that needs more than a hard limit.
+
+| Kind | Name | Meaning |
+|---|---|---|
+| 1 | `ZTREE_QUERY_ERROR_SYNTAX` | As `TSQueryErrorSyntax`. |
+| 2 | `ZTREE_QUERY_ERROR_NODE_TYPE` | An unknown node type. |
+| 3 | `ZTREE_QUERY_ERROR_FIELD` | An unknown field. |
+| 4 | `ZTREE_QUERY_ERROR_CAPTURE` | An unknown capture in a predicate. |
+| 5 | `ZTREE_QUERY_ERROR_STRUCTURE` | A pattern that the grammar cannot produce. |
+| 6 | `ZTREE_QUERY_ERROR_LANGUAGE` | A grammar of an unsupported ABI version. |
+| 7 | `ZTREE_QUERY_ERROR_PREDICATE` | An unknown predicate, wrong arguments or an invalid regex. |
+| 8 | `ZTREE_QUERY_ERROR_UNSUPPORTED` | A supertype, a directive or a regex outside the subset. |
+
 ### `int32_t ztree_regex_match(pattern, pattern_len, text, text_len, matched_out, error_offset_out)`
 The function compiles a regex and writes 1 to `*matched_out` when it matches somewhere in the text, as `regexp.Match` of Go does. It uses the engine of the `#match?` predicate. [ADR-0010](/decisions/adr-0010-a-pike-vm-for-an-re2-subset--01a1f0902c3e.md) gives the syntax subset. A pattern error gives code 7 or 8 and the byte offset of the error in `*error_offset_out`. A program that is too large gives code 5.
 
@@ -99,6 +117,7 @@ The function compiles a regex and writes 1 to `*matched_out` when it matches som
 | 6 | `ZTREE_ERROR_UNSUPPORTED_GRAMMAR` | 0 | Unspecified. |
 | 7 | `ZTREE_ERROR_REGEX_SYNTAX` | Only `ztree_regex_match`: the Go `regexp` package rejects the pattern too. | — |
 | 8 | `ZTREE_ERROR_REGEX_UNSUPPORTED` | Only `ztree_regex_match`: valid RE2 syntax that ztree does not read. | — |
+| 9 | `ZTREE_ERROR_QUERY` | Only `ztree_query_compile`: 0, and `*error_out` holds the error. | — |
 
 Code 5 means that the parse reached a hard limit of `limits` in `src/root.zig`: subtrees, stack nodes, stack versions, tree depth or operations. To get all spans after code 1, call the function again with a buffer of `*count_out` spans. The second call parses the source again.
 
@@ -126,5 +145,6 @@ A failed assertion or a safety check is a bug in ztree. The panic handler writes
 - `src/capi.zig`: the status codes, the bad arguments, the language values, `ztree_parse` and the language functions.
 - `tests/capi_test.c`: a C caller of `libztree.a` through `include/ztree.h`. It checks the layouts, each grammar, the points, the buffer rules, the bad arguments, the nodes of a parse and the language functions. `zig build test` runs it.
 - `bindings/go`: each grammar, the buffer growth, the errors and calls from 8 goroutines. It compares the comments of the Go files in five GOROOT package trees with `go/parser`, and their functions with `go/ast`. It checks the node API, the cursor and the rules of ADR-0009. `zmake go` runs the tests with the race detector.
+- `tests/query_test.zig`: `ztree_query_compile` against `ts_query_new` on the upstream query files, hand-written queries and their mutations ([ADR-0011](/decisions/adr-0011-a-structural-port-of-the-reference-query-compiler--01a1f0a8133a.md)).
 - `bindings/go/regex_test.go`: `ztree_regex_match` against the `regexp` package on a table, on 20,000 random patterns and in the fuzz target `FuzzRegex`.
 - `zig build differential`: each node of each tree against the reference `TSNode` API, and each field lookup against `ts_node_child_by_field_id`.

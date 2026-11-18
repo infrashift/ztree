@@ -14,4 +14,5 @@
 * [ADR-0008: A flat tree and a compiled query blob in caller memory](adr-0008-a-flat-tree-and-a-compiled-query-blob-in-caller-memory--01a1ef929e5c.md) - The C ABI writes the finished tree as a flat node array and a compiled query as a pointer-free blob, both in caller memory, with no handles and no callbacks.
 * [ADR-0009: Field overrides and the node rules of the flat tree](adr-0009-field-overrides-and-the-node-rules-of-the-flat-tree--01a1f080b1ed.md) - ztree_parse writes field overrides for the rare field lookups that the first-child rule does not give, and the binding follows the sibling and error rules of the reference TSNode API.
 * [ADR-0010: A Pike VM for an RE2 subset](adr-0010-a-pike-vm-for-an-re2-subset--01a1f0902c3e.md) - src/regex.zig reads an ASCII subset of RE2 and matches with a Pike VM in linear time, with the result of regexp.Match of Go.
+* [ADR-0011: A structural port of the reference query compiler](adr-0011-a-structural-port-of-the-reference-query-compiler--01a1f0a8133a.md) - src/query.zig and src/query_analysis.zig port ts_query_new and its parse-table analysis step for step, and the predicates follow NewQuery of go-tree-sitter.
 

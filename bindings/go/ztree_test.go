@@ -15,8 +15,8 @@ import (
 )
 
 func TestABIVersion(t *testing.T) {
-	if got := ABIVersion(); got != 4 {
-		t.Fatalf("ABIVersion() = %d, want 4", got)
+	if got := ABIVersion(); got != 5 {
+		t.Fatalf("ABIVersion() = %d, want 5", got)
 	}
 }
 

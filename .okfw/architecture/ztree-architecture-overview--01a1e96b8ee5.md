@@ -39,6 +39,10 @@ This note describes the modules of ztree and the data flow of one parse. [ADR-00
 | `src/recover.zig` | Error recovery. Valid input uses it too. | 3 |
 | `src/tree.zig` | Nodes, the cursor and S-expression output. | 5 |
 | `src/comments.zig` | Comment node types per language and span extraction. | 5 |
+| `src/query.zig` | The query parser: a port of `ts_query_new` with a frame stack ([ADR-0011](/decisions/adr-0011-a-structural-port-of-the-reference-query-compiler--01a1f0a8133a.md)). | 11 |
+| `src/query_analysis.zig` | The parse-table analysis of each pattern: structure errors and fallible steps. | 11 |
+| `src/query_predicates.zig` | The text predicates, checked as go-tree-sitter checks them. | 11 |
+| `src/query_blob.zig` | The compiled query blob with no pointers, and its read view. | 11 |
 | `src/regex.zig` | The regex engine of `#match?`: an RE2 subset and a Pike VM ([ADR-0010](/decisions/adr-0010-a-pike-vm-for-an-re2-subset--01a1f0902c3e.md)). | 10 |
 | `src/flat.zig` | The flat tree: one record for each visible node, the field overrides, and the S-expression of the records. | 9 |
 | `src/capi.zig` | The exported C ABI and the panic handler of `libztree.a`. See the [C ABI spec](/specs/ztree-c-abi--01a1ec92dc4f.md). | 7 |

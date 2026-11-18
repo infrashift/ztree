@@ -188,6 +188,24 @@ static void test_language(void) {
   CHECK(ztree_language_field_name(99, 1) == NULL);
 }
 
+static void test_query_compile(void) {
+  _Alignas(4) uint8_t blob[8192];
+  size_t size = 0;
+  ztree_query_error err;
+  const char *q = "(call_expression function: (identifier) @f (#eq? @f \"panic\"))";
+  CHECK(ztree_query_compile(ZTREE_LANG_GO, (const uint8_t *)q, strlen(q), blob, sizeof blob, &size, &err) ==
+        ZTREE_OK);
+  CHECK(size > 0 && size <= sizeof blob);
+  size_t needed = size;
+  CHECK(ztree_query_compile(ZTREE_LANG_GO, (const uint8_t *)q, strlen(q), NULL, 0, &size, &err) ==
+        ZTREE_ERROR_BUFFER_TOO_SMALL);
+  CHECK(size == needed);
+  const char *bad = "(call_expression\n  function: (no_such_node))";
+  CHECK(ztree_query_compile(ZTREE_LANG_GO, (const uint8_t *)bad, strlen(bad), blob, sizeof blob, &size, &err) ==
+        ZTREE_ERROR_QUERY);
+  CHECK(err.kind == ZTREE_QUERY_ERROR_NODE_TYPE && err.row == 1 && err.column == 13 && err.offset == 30);
+}
+
 int main(void) {
   CHECK(ztree_abi_version() == ZTREE_ABI_VERSION);
   test_each_grammar();
@@ -197,6 +215,7 @@ int main(void) {
   test_syntax_errors();
   test_parse();
   test_language();
+  test_query_compile();
   if (failures > 0) {
     fprintf(stderr, "capi_test: %d failure(s)\n", failures);
     return 1;

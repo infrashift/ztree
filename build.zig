@@ -139,6 +139,31 @@ pub fn build(b: *std.Build) void {
     parser_mod.addOptions("samples", sample_options);
     test_step.dependOn(&b.addRunArtifact(b.addTest(.{ .root_module = parser_mod })).step);
 
+    // The query compiler against the reference (ISSUE-013), in `zig build test`.
+    const query_mod = b.createModule(.{
+        .root_source_file = b.path("tests/query_test.zig"),
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+        .imports = &.{.{ .name = "ztree", .module = mod }},
+    });
+    query_mod.addCSourceFile(.{ .file = b.path("tests/query_shim.c"), .flags = &oracle_flags });
+    query_mod.addIncludePath(b.path("third_party/tree-sitter/lib/include"));
+    query_mod.addIncludePath(b.path("third_party/tree-sitter/lib/src"));
+    query_mod.linkLibrary(oracle);
+    const query_corpus = b.addOptions();
+    var query_langs: [query_files.len][]const u8 = undefined;
+    var query_paths: [query_files.len][]const u8 = undefined;
+    for (query_files, 0..) |f, i| {
+        query_langs[i] = f[0];
+        query_paths[i] = f[1];
+        query_mod.addAnonymousImport(f[1], .{ .root_source_file = b.path(f[1]) });
+    }
+    query_corpus.addOption([]const []const u8, "langs", &query_langs);
+    query_corpus.addOption([]const []const u8, "paths", &query_paths);
+    query_mod.addOptions("query_corpus", query_corpus);
+    test_step.dependOn(&b.addRunArtifact(b.addTest(.{ .root_module = query_mod })).step);
+
     // Corpus conformance (ISSUE-006): `zig build conformance`.
     const conformance_mod = b.createModule(.{
         .root_source_file = b.path("tests/conformance_test.zig"),
@@ -270,4 +295,20 @@ const parser_samples = [_]struct { []const u8, []const u8, []const u8 }{
     .{ "cpp", "file", "third_party/grammars/cpp/examples/rule.cc" },
     .{ "python", "file", "scripts/nasa-lint.py" },
     .{ "python", "file", "scripts/ste-check.py" },
+};
+
+/// The query files of the upstream grammars (MIT), the corpus of tests/query_test.zig.
+const query_files = [_]struct { []const u8, []const u8 }{
+    .{ "go", "tests/queries/go/highlights.scm" },
+    .{ "go", "tests/queries/go/tags.scm" },
+    .{ "c", "tests/queries/c/highlights.scm" },
+    .{ "c", "tests/queries/c/tags.scm" },
+    .{ "cpp", "tests/queries/cpp/highlights.scm" },
+    .{ "cpp", "tests/queries/cpp/injections.scm" },
+    .{ "cpp", "tests/queries/cpp/tags.scm" },
+    .{ "python", "tests/queries/python/highlights.scm" },
+    .{ "python", "tests/queries/python/tags.scm" },
+    .{ "rust", "tests/queries/rust/highlights.scm" },
+    .{ "rust", "tests/queries/rust/injections.scm" },
+    .{ "rust", "tests/queries/rust/tags.scm" },
 };
