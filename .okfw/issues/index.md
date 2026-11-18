@@ -12,4 +12,5 @@
 * [ISSUE-006: Conformance with grammar corpus tests and the reference runtime](issue-006-conformance-with-grammar-corpus-tests-and-the-reference-runtime--01a1e96b8f8a.md) - Conformance with grammar corpus tests and the reference runtime.
 * [ISSUE-007: C ABI and static library for Go callers](issue-007-c-abi-and-static-library-for-go-callers--01a1e96b8f9a.md) - C ABI and static library for Go callers.
 * [ISSUE-008: Zig 0.17 keywords in the Zig grammar](issue-008-zig-0-17-keywords-in-the-zig-grammar--01a1ebfde99b.md) - tree-sitter-zig v1.1.2 reserves async, await and usingnamespace, so Zig 0.17 code that uses them as identifiers gives syntax errors.
+* [ISSUE-009: Rare Zig forms that the patched grammar cannot read](issue-009-rare-zig-forms-that-the-patched-grammar-cannot-read--01a1ec8ab913.md) - Three rare Zig forms give syntax errors in 5 of 579 files of the Zig 0.17.1 standard library and zmake.
 

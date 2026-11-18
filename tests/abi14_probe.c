@@ -1,6 +1,7 @@
-// C layout probe for the ABI 14 header (tests/abi_test.zig compares it with src/abi.zig).
+// C layout probe for the ABI 14 header of tree-sitter-zig v1.1.2, kept in
+// tests/abi14/parser.h (tests/abi_test.zig compares it with src/abi.zig).
 #include <stddef.h>
-#include "../third_party/grammars/zig/src/tree_sitter/parser.h"
+#include "abi14/parser.h"
 
 const size_t ztree_probe14[] = {
   sizeof(TSLanguage),

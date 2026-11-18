@@ -43,4 +43,4 @@ This note describes the planned modules of ztree and the data flow of one parse.
 
 ## Boundaries
 - The runtime never calls the reference runtime. Only the test and conformance steps link it.
-- The vendored C in `third_party/` stays unchanged. See [ADR-0002](/decisions/adr-0002-zig-0-17-1-the-standard-library-and-vendored-c-grammars--01a1e96b8f06.md) and [ADR-0003](/decisions/adr-0003-adapt-the-nasa-power-of-10-rules-to-ztree--01a1e96b8f17.md).
+- The vendored C in `third_party/` stays unchanged. One exception: ztree generates the Zig grammar from a patched `grammar.js` ([ADR-0006](/decisions/adr-0006-a-patched-zig-grammar-for-zig-0-17-and-empty-containers--01a1ec8a934e.md)). See [ADR-0002](/decisions/adr-0002-zig-0-17-1-the-standard-library-and-vendored-c-grammars--01a1e96b8f06.md) and [ADR-0003](/decisions/adr-0003-adapt-the-nasa-power-of-10-rules-to-ztree--01a1e96b8f17.md).

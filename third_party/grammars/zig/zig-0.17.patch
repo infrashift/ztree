@@ -1,0 +1,92 @@
+--- a/grammar.js
++++ b/grammar.js
+@@ -97,7 +97,6 @@
+           $.comptime_declaration,
+           $.variable_declaration,
+           $.function_declaration,
+-          $.using_namespace_declaration,
+           seq($.container_field, ','),
+         )),
+         optional($.container_field),
+@@ -225,13 +224,6 @@
+       '...',
+     ),
+ 
+-    using_namespace_declaration: $ => seq(
+-      optional('pub'),
+-      'usingnamespace',
+-      $.expression,
+-      ';',
+-    ),
+-
+     block: $ => seq(
+       '{',
+       repeat($.statement),
+@@ -243,7 +235,7 @@
+       'struct',
+       optional(seq('(', $.expression, ')')),
+       '{',
+-      $._container_members,
++      optional($._container_members),
+       '}',
+     ),
+ 
+@@ -251,7 +243,7 @@
+       optional(choice('extern', 'packed')),
+       'opaque',
+       '{',
+-      $._container_members,
++      optional($._container_members),
+       '}',
+     ),
+ 
+@@ -260,7 +252,7 @@
+       'enum',
+       optional(seq('(', $.expression, ')')),
+       '{',
+-      $._container_members,
++      optional($._container_members),
+       '}',
+     ),
+ 
+@@ -276,7 +268,7 @@
+         ')',
+       )),
+       '{',
+-      $._container_members,
++      optional($._container_members),
+       '}',
+     ),
+ 
+@@ -413,8 +405,6 @@
+       $.unary_expression,
+       $.binary_expression,
+       $.comptime_expression,
+-      $.async_expression,
+-      $.await_expression,
+       $.nosuspend_expression,
+       $.continue_expression,
+       $.resume_expression,
+@@ -454,7 +444,10 @@
+       $.expression,
+       ')',
+     ),
+-    asm_clobbers: $ => seq(':', optionalCommaSep(choice($.string, $.multiline_string))),
++    asm_clobbers: $ => seq(':', choice(
++      optionalCommaSep(choice($.string, $.multiline_string)),
++      $.anonymous_struct_initializer,
++    )),
+ 
+     if_expression: $ => prec.right(seq(
+       $._if_prefix,
+@@ -538,10 +531,6 @@
+ 
+     comptime_expression: $ => prec.right(seq('comptime', $.expression)),
+ 
+-    async_expression: $ => prec.right(seq('async', $.expression)),
+-
+-    await_expression: $ => prec.right(seq('await', $.expression)),
+-
+     nosuspend_expression: $ => prec.right(seq('nosuspend', $.expression)),
+ 
+     continue_expression: $ => prec.right(seq(

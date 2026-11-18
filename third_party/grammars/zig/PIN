@@ -3,5 +3,9 @@ tag: v1.1.2
 commit: b670c8df85a1568f498aa5c8cae42f51a90473c0
 abi: 14
 vendored: 2026-11-17
-paths: src/ LICENSE
-local changes: none
+paths: src/ LICENSE grammar.js
+local changes: zig-0.17.patch (ADR-0006: semscope ADR-0010 plus empty containers)
+generator: tree-sitter-cli 0.25.10 (da6fe9beb4f7f67beb75914ca8e0d48ae48d6406)
+generate: npx --yes tree-sitter-cli@0.25.10 generate (in this directory)
+grammar.js sha256: eefbf955cbb71136aa65181d17aa186b128a5fe8abd302392ceb66070e63c732
+src/parser.c sha256: 5e56b8373077df3211705fd063f448b67200ac2cf4f5999ffd65550dc1db9a1a

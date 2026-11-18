@@ -65,6 +65,25 @@ test "parser matches the reference runtime on keyword and error inputs" {
     try std.testing.expectEqual(extra_inputs.len, totals.compared);
 }
 
+/// Zig code that the release grammar v1.1.2 cannot read (ADR-0006): Zig 0.17
+/// identifiers, Zig 0.15 asm clobbers and empty containers.
+const zig_017_inputs = [_][]const u8{
+    "fn f(io: Io) void { const r = await(io, future, result, 8); async = r; }\n",
+    "const usingnamespace = 1;\npub fn g() u8 { return usingnamespace + async + await; }\n",
+    "fn h() void { asm volatile (\"syscall\" ::: .{ .rcx = true, .r11 = true, .memory = true }); }\n",
+    "const A = struct {};\nconst B = enum {};\nconst C = union {};\nconst D = *opaque {};\nconst E = extern struct {};\n",
+};
+
+test "the patched Zig grammar reads Zig 0.17 code and empty containers without errors" {
+    var totals = Totals{};
+    for (zig_017_inputs) |input| {
+        try check("zig", input, input, &totals);
+        errdefer std.debug.print("input with errors: {s}\n", .{input});
+        try std.testing.expect(!totals.last_had_error);
+    }
+    try std.testing.expectEqual(zig_017_inputs.len, totals.compared);
+}
+
 test "parser matches the reference runtime on corpus inputs and source files" {
     const gpa = std.testing.allocator;
     var totals = Totals{};
