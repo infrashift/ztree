@@ -84,6 +84,22 @@ test "the patched Zig grammar reads Zig 0.17 code and empty containers without e
     try std.testing.expectEqual(zig_017_inputs.len, totals.compared);
 }
 
+/// C++ code read as C that needs more than 64 GLR stack heads (ISSUE-016,
+/// ADR-0013). A delta reduction of two real headers gave these inputs. The
+/// first needs 87 heads (from V8 `template-utils.h`), the second needs 71
+/// (from libstdc++ `stl_algobase.h`). With 64 heads, ztree failed with
+/// `TooManyVersions` on both.
+const many_heads_inputs = [_][]const u8{
+    "pack(Index>pack(<Key,Key,static_assert(Key,Rest...>);:+",
+    "(a,b&c(d,e&,f(g,h&,i(const,const j&);/* note */\n&",
+};
+
+test "parser matches the reference runtime on inputs that need more than 64 stack heads" {
+    var totals = Totals{};
+    for (many_heads_inputs) |input| try check("c", input, input, &totals);
+    try std.testing.expectEqual(many_heads_inputs.len, totals.compared);
+}
+
 test "parser matches the reference runtime on corpus inputs and source files" {
     const gpa = std.testing.allocator;
     var totals = Totals{};

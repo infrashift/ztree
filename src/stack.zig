@@ -17,8 +17,8 @@ const Allocator = std.mem.Allocator;
 
 const max_link_count = 8;
 const max_iterator_count = 64;
-/// The most stack versions that the stack holds at one time.
-pub const max_heads = 64;
+/// The most stack versions that the stack holds at one time (ADR-0013).
+pub const max_heads = limits.max_stack_heads;
 
 pub const Version = u32;
 pub const version_none: Version = std.math.maxInt(Version);

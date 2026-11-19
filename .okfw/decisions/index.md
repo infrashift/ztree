@@ -16,4 +16,5 @@
 * [ADR-0010: A Pike VM for an RE2 subset](adr-0010-a-pike-vm-for-an-re2-subset--01a1f0902c3e.md) - src/regex.zig reads an ASCII subset of RE2 and matches with a Pike VM in linear time, with the result of regexp.Match of Go.
 * [ADR-0011: A structural port of the reference query compiler](adr-0011-a-structural-port-of-the-reference-query-compiler--01a1f0a8133a.md) - src/query.zig and src/query_analysis.zig port ts_query_new and its parse-table analysis step for step, and the predicates follow NewQuery of go-tree-sitter.
 * [ADR-0012: A port of the reference query cursor over the flat tree](adr-0012-a-port-of-the-reference-query-cursor-over-the-flat-tree--01a1f111feba.md) - src/query_exec.zig ports ts_query_cursor__advance and next_match over the flat tree, with the cursor status in each node and the text predicates of go-tree-sitter.
+* [ADR-0013: A bound of 256 GLR stack heads](adr-0013-a-bound-of-256-glr-stack-heads--01a1f2f0124a.md) - The GLR stack of ztree holds at most 256 heads, about 2.8 times the largest count on 73,701 files, so C++ headers read as C parse as in the reference.
 

@@ -36,7 +36,7 @@ The user requires the Power of 10 rules for the runtime. The rules target C. A G
 
 **Generated and vendored C:** the lex function uses `goto` and the grammar headers use macros. The external scanners allocate. This C code is outside the runtime, and `nasa-lint.py` does not scan it. ztree does not edit it.
 
-**Hard limits** (`src/root.zig`, `limits`): source size 16 MiB and 6 stack versions. Each phase adds its limits to the same struct.
+**Hard limits** (`src/root.zig`, `limits`): source size 16 MiB, 6 stack versions after each condense and 256 stack heads during a reduce ([ADR-0013](/decisions/adr-0013-a-bound-of-256-glr-stack-heads--01a1f2f0124a.md)). Each phase adds its limits to the same struct.
 
 **Release builds** use `ReleaseSafe`, so `assert` stays active in the shipped library.
 

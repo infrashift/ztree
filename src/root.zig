@@ -29,6 +29,10 @@ pub const limits = struct {
     pub const max_source_bytes: usize = 16 * 1024 * 1024;
     /// The maximum number of GLR stack versions. The reference runtime uses 6.
     pub const max_stack_versions: usize = 6;
+    /// The most GLR stack heads at one time. A reduce can add more versions
+    /// than `max_stack_versions` before the parser condenses the stack. The
+    /// largest count on 73,701 files is 90 (ADR-0013).
+    pub const max_stack_heads: usize = 256;
     /// The most subtrees that one parse allocates. ztree frees no subtree
     /// before the parse ends (ADR-0005).
     pub const max_subtrees: usize = 4 * 1024 * 1024;
@@ -41,6 +45,7 @@ pub const limits = struct {
 test "limits are positive" {
     try std.testing.expect(limits.max_source_bytes > 0);
     try std.testing.expect(limits.max_stack_versions > 0);
+    try std.testing.expect(limits.max_stack_heads > limits.max_stack_versions);
 }
 
 test {

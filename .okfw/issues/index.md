@@ -20,4 +20,5 @@
 * [ISSUE-014: Query execution](issue-014-query-execution--01a1ef92fe94.md) - Query execution.
 * [ISSUE-015: Handoff to semscope](issue-015-handoff-to-semscope--01a1ef92fe9b.md) - Handoff to semscope.
 * [ISSUE-016: The GLR stack limit of 64 heads](issue-016-the-glr-stack-limit-of-64-heads--01a1f080f76c.md) - The C grammar needs more than 64 stack heads for one libstdc++ header, so ztree returns TooManyVersions where the reference runtime gives a tree.
+* [ISSUE-017: An overflow of repeat_depth on large repetitions](issue-017-an-overflow-of-repeat-depth-on-large-repetitions--01a1f2f04d37.md) - summarizeEnds adds 1 to the u16 repeat_depth for each item of a repetition, so a table of more than 65,535 items panics in a safe build.
 
