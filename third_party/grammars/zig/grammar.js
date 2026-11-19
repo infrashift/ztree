@@ -123,9 +123,9 @@ module.exports = grammar({
         seq(
           field('name', choice($.identifier, $._reserved_identifier, alias($.builtin_type, $.identifier))),
           ':',
-          field('type', choice($.primary_type_expression, $.if_type_expression, $.comptime_type_expression)),
+          field('type', choice($.primary_type_expression, $.if_type_expression, $.comptime_type_expression, $.error_set_declaration)),
         ),
-        field('name', choice($.primary_type_expression, $.if_type_expression, $.comptime_type_expression)),
+        field('name', choice($.primary_type_expression, $.if_type_expression, $.comptime_type_expression, $.error_set_declaration)),
       ),
       optional($.byte_alignment),
       optional(seq('=', $.expression)),
@@ -447,6 +447,7 @@ module.exports = grammar({
     asm_clobbers: $ => seq(':', choice(
       optionalCommaSep(choice($.string, $.multiline_string)),
       $.anonymous_struct_initializer,
+      $.identifier,
     )),
 
     if_expression: $ => prec.right(seq(
@@ -649,7 +650,7 @@ module.exports = grammar({
         'volatile',
         'allowzero',
       )),
-      $.type_expression,
+      choice($.type_expression, $.if_type_expression),
     )),
 
     pointer_type: $ => prec.right(1, seq(

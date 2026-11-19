@@ -84,6 +84,28 @@ test "the patched Zig grammar reads Zig 0.17 code and empty containers without e
     try std.testing.expectEqual(zig_017_inputs.len, totals.compared);
 }
 
+/// Three rare Zig forms from the Zig 0.17.1 standard library (ISSUE-009,
+/// ADR-0015): an error set as the type or the name of a container field, a
+/// slice of an `if` type and an identifier as the asm clobbers. Without
+/// ADR-0015, each input gives a MISSING `..` or an ERROR node.
+const zig_rare_inputs = [_][]const u8{
+    "const P = struct { w: error{A}, v: error{ B, C } = undefined };\n",
+    "const T = struct { error{foo} };\nconst U = struct { error{foo}, u8 };\n",
+    "fn f(c: bool) void { const v: []if (c) A else B = &.{}; _ = v; }\n",
+    "const S = struct { vec: []const if (c) A else B, w: [:0]align(4) if (c) u8 else u16 };\n",
+    "fn g() void { asm volatile (\"svc #0\" : [r] \"={x0}\" (-> usize) : [n] \"{x8}\" (n) : clobbers); }\n",
+};
+
+test "the patched Zig grammar reads the three rare forms of ISSUE-009 without errors" {
+    var totals = Totals{};
+    for (zig_rare_inputs) |input| {
+        try check("zig", input, input, &totals);
+        errdefer std.debug.print("input with errors: {s}\n", .{input});
+        try std.testing.expect(!totals.last_had_error);
+    }
+    try std.testing.expectEqual(zig_rare_inputs.len, totals.compared);
+}
+
 /// C++ code read as C that needs more than 64 GLR stack heads (ISSUE-016,
 /// ADR-0013). A delta reduction of two real headers gave these inputs. The
 /// first needs 87 heads (from V8 `template-utils.h`), the second needs 71

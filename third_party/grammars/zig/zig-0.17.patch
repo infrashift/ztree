@@ -8,6 +8,18 @@
            seq($.container_field, ','),
          )),
          optional($.container_field),
+@@ -124,9 +123,9 @@
+         seq(
+           field('name', choice($.identifier, $._reserved_identifier, alias($.builtin_type, $.identifier))),
+           ':',
+-          field('type', choice($.primary_type_expression, $.if_type_expression, $.comptime_type_expression)),
++          field('type', choice($.primary_type_expression, $.if_type_expression, $.comptime_type_expression, $.error_set_declaration)),
+         ),
+-        field('name', choice($.primary_type_expression, $.if_type_expression, $.comptime_type_expression)),
++        field('name', choice($.primary_type_expression, $.if_type_expression, $.comptime_type_expression, $.error_set_declaration)),
+       ),
+       optional($.byte_alignment),
+       optional(seq('=', $.expression)),
 @@ -225,13 +224,6 @@
        '...',
      ),
@@ -67,7 +79,7 @@
        $.nosuspend_expression,
        $.continue_expression,
        $.resume_expression,
-@@ -454,7 +444,10 @@
+@@ -454,7 +444,11 @@
        $.expression,
        ')',
      ),
@@ -75,11 +87,12 @@
 +    asm_clobbers: $ => seq(':', choice(
 +      optionalCommaSep(choice($.string, $.multiline_string)),
 +      $.anonymous_struct_initializer,
++      $.identifier,
 +    )),
  
      if_expression: $ => prec.right(seq(
        $._if_prefix,
-@@ -538,10 +531,6 @@
+@@ -538,10 +532,6 @@
  
      comptime_expression: $ => prec.right(seq('comptime', $.expression)),
  
@@ -90,3 +103,12 @@
      nosuspend_expression: $ => prec.right(seq('nosuspend', $.expression)),
  
      continue_expression: $ => prec.right(seq(
+@@ -660,7 +650,7 @@
+         'volatile',
+         'allowzero',
+       )),
+-      $.type_expression,
++      choice($.type_expression, $.if_type_expression),
+     )),
+ 
+     pointer_type: $ => prec.right(1, seq(

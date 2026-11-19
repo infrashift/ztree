@@ -379,6 +379,10 @@
           "named": true
         },
         {
+          "type": "identifier",
+          "named": true
+        },
+        {
           "type": "multiline_string",
           "named": true
         },
@@ -1043,6 +1047,10 @@
             "named": true
           },
           {
+            "type": "error_set_declaration",
+            "named": true
+          },
+          {
             "type": "false",
             "named": false
           },
@@ -1066,6 +1074,10 @@
         "types": [
           {
             "type": "comptime_type_expression",
+            "named": true
+          },
+          {
+            "type": "error_set_declaration",
             "named": true
           },
           {
@@ -2076,6 +2088,10 @@
         },
         {
           "type": "byte_alignment",
+          "named": true
+        },
+        {
+          "type": "if_type_expression",
           "named": true
         },
         {
