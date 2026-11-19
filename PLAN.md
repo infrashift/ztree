@@ -56,7 +56,7 @@ Tracking: [ISSUE-006](.okfw/issues/issue-006-conformance-with-grammar-corpus-tes
 - [x] Add the `conformance` target to `ZMakefile`, `Makefile` and `check`
 
 ## Open issues
-None.
+- [ISSUE-018](.okfw/issues/issue-018-the-go-build-cache-does-not-see-a-new-libztree-a--01a1f47872d7.md): the Go build cache does not see a new `libztree.a`
 
 Closed: [ISSUE-009](.okfw/issues/issue-009-rare-zig-forms-that-the-patched-grammar-cannot-read--01a1ec8ab913.md) by [ADR-0015](.okfw/decisions/adr-0015-three-rare-zig-forms-in-the-patched-grammar--01a1f3e617cd.md) in Phase 16. [ISSUE-017](.okfw/issues/issue-017-an-overflow-of-repeat-depth-on-large-repetitions--01a1f2f04d37.md) by [ADR-0014](.okfw/decisions/adr-0014-no-repeat-depth-in-a-subtree--01a1f309a44d.md) in Phase 15. [ISSUE-016](.okfw/issues/issue-016-the-glr-stack-limit-of-64-heads--01a1f080f76c.md) by [ADR-0013](.okfw/decisions/adr-0013-a-bound-of-256-glr-stack-heads--01a1f2f0124a.md) in Phase 14. [ISSUE-008](.okfw/issues/issue-008-zig-0-17-keywords-in-the-zig-grammar--01a1ebfde99b.md) by [ADR-0006](.okfw/decisions/adr-0006-a-patched-zig-grammar-for-zig-0-17-and-empty-containers--01a1ec8a934e.md).
 
