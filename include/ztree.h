@@ -196,6 +196,8 @@ const char *ztree_language_field_name(uint32_t lang, uint32_t field);
 #define ZTREE_QUERY_ERROR_LANGUAGE 6
 #define ZTREE_QUERY_ERROR_PREDICATE 7  /* An unknown predicate, bad arguments, or a bad regex. */
 #define ZTREE_QUERY_ERROR_UNSUPPORTED 8 /* A supertype, a directive, or a regex outside the subset. */
+/* A directive is a predicate whose name ends in "!", for example #set! and
+ * #strip!. #is? and #is-not? also give ZTREE_QUERY_ERROR_UNSUPPORTED. */
 
 /* The largest query text, in bytes. */
 #define ZTREE_MAX_QUERY_BYTES (1024u * 1024u)

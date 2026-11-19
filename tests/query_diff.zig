@@ -20,9 +20,10 @@ const Capture = ztree.query_exec.Capture;
 extern fn ztree_ref_query_matches(lang: *const ztree.abi.Language14, query: [*]const u8, query_len: u32, src: [*]const u8, len: u32, matches: [*]Match, match_cap: u32, match_count: *u32, caps: [*]Capture, cap_cap: u32, cap_count: *u32) bool;
 
 const Source = struct { name: []const u8, text: []const u8 };
-const Query = struct { name: []const u8, text: []const u8 };
+/// A query; `corpus` is true for a file of `tests/queries/`.
+const Query = struct { name: []const u8, text: []const u8, corpus: bool = false };
 
-const Totals = struct { runs: usize = 0, matches: usize = 0, captures: usize = 0, unsupported: usize = 0 };
+const Totals = struct { runs: usize = 0, matches: usize = 0, captures: usize = 0, unsupported: usize = 0, without_predicates: usize = 0 };
 
 fn langOf(path: []const u8) ?grammars.Lang {
     const ext = std.fs.path.extension(path);
@@ -48,8 +49,10 @@ fn addDir(arena: std.mem.Allocator, io: std.Io, root: []const u8, sources: *[6]s
     }
 }
 
-/// Compile `q` into a blob with ztree, or null when ztree rejects it.
-fn compile(arena: std.mem.Allocator, lang: grammars.Lang, q: []const u8) !?[]align(4) u8 {
+/// Compile `q` into a blob with ztree, or null when ztree rejects it. When
+/// ztree rejects only a predicate, for example a directive, the blob has no
+/// text predicates: the comparison skips them (ISSUE-022).
+fn compile(arena: std.mem.Allocator, lang: grammars.Lang, q: []const u8, totals: *Totals) !?[]align(4) u8 {
     var failure = ztree.query.Failure{};
     var ub = false;
     const compiled = ztree.query.compile(arena, grammars.language(lang), q, &failure, &ub) catch |err| switch (err) {
@@ -58,7 +61,12 @@ fn compile(arena: std.mem.Allocator, lang: grammars.Lang, q: []const u8) !?[]ali
     };
     if (ub) return null;
     const preds = ztree.query_predicates.compile(compiled, &failure) catch |err| switch (err) {
-        error.QueryError => return null,
+        error.QueryError => blk: {
+            totals.without_predicates += 1;
+            var none = ztree.query_predicates.Predicates{};
+            try none.per_pattern.appendNTimes(arena, .{ .offset = 0, .length = 0 }, compiled.patterns.items.len);
+            break :blk none;
+        },
         else => return err,
     };
     const size = try ztree.query_blob.write(arena, @backingInt(lang), compiled, &preds, &.{});
@@ -121,7 +129,7 @@ test "query matches equal the matches of the reference query cursor" {
     for (options.dirs) |d| try addDir(arena, std.testing.io, d, &sources);
     var queries: [6]std.ArrayList(Query) = @splat(.empty);
     inline for (query_corpus.paths, query_corpus.langs) |path, lang_name| {
-        try queries[@backingInt(std.meta.stringToEnum(grammars.Lang, lang_name).?)].append(arena, .{ .name = path, .text = @embedFile(path) });
+        try queries[@backingInt(std.meta.stringToEnum(grammars.Lang, lang_name).?)].append(arena, .{ .name = path, .text = @embedFile(path), .corpus = true });
     }
     for (cases) |c| try queries[@backingInt(std.meta.stringToEnum(grammars.Lang, c[0]).?)].append(arena, .{ .name = c[1], .text = c[1] });
     var totals = Totals{};
@@ -129,7 +137,9 @@ test "query matches equal the matches of the reference query cursor" {
     for (queries, sources, 0..) |qs, srcs, li| {
         const lang: grammars.Lang = @fromBackingInt(@intCast(li));
         for (qs.items) |q| {
-            const blob = try compile(arena, lang, q.text) orelse {
+            const blob = try compile(arena, lang, q.text, &totals) orelse {
+                // Each file of the corpus takes part in the comparison.
+                try std.testing.expect(!q.corpus);
                 totals.unsupported += 1;
                 continue;
             };
@@ -140,7 +150,7 @@ test "query matches equal the matches of the reference query cursor" {
             }
         }
     }
-    std.debug.print("query-diff: {d} runs, {d} matches and {d} captures equal the reference; {d} queries do not compile\n", .{ totals.runs, totals.matches, totals.captures, totals.unsupported });
+    std.debug.print("query-diff: {d} runs, {d} matches and {d} captures equal the reference; {d} queries run without their predicates, {d} queries do not compile\n", .{ totals.runs, totals.matches, totals.captures, totals.without_predicates, totals.unsupported });
     try std.testing.expectEqual(@as(usize, 0), failures);
     try std.testing.expect(totals.matches > 1000);
 }

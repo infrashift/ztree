@@ -1,9 +1,11 @@
 //! The text predicates of a query (ADR-0011). The checks and the meaning
 //! follow `NewQuery` of go-tree-sitter v0.25: `#eq?`, `#not-eq?`,
 //! `#any-eq?`, `#any-not-eq?`, the four forms of `#match?`, `#any-of?` and
-//! `#not-any-of?`. ztree rejects other predicates: the directives `#set!`,
-//! `#is?` and `#is-not?` are outside its scope (ADR-0007), and an unknown
-//! predicate is an error. `#match?` compiles its regex here (ADR-0010).
+//! `#not-any-of?`. ztree rejects other predicates. A directive (each name
+//! that ends in `!`, for example `#set!` and `#strip!`) and the property
+//! predicates `#is?` and `#is-not?` are outside its scope (ADR-0007), so
+//! they give `unsupported` (ADR-0011). Another unknown predicate gives
+//! `predicate`. `#match?` compiles its regex here (ADR-0010).
 
 const std = @import("std");
 const assert = std.debug.assert;
@@ -81,8 +83,9 @@ const Checker = struct {
             if (std.mem.eql(u8, name, form)) return self.eqOrMatch(steps, .match, i);
         }
         if (std.mem.eql(u8, name, "any-of?") or std.mem.eql(u8, name, "not-any-of?")) return self.anyOf(steps, name[0] == 'a');
-        const directives = [_][]const u8{ "set!", "is?", "is-not?" };
-        for (directives) |d| if (std.mem.eql(u8, name, d)) return self.fail(.unsupported);
+        if (std.mem.endsWith(u8, name, "!")) return self.fail(.unsupported);
+        const property_predicates = [_][]const u8{ "is?", "is-not?" };
+        for (property_predicates) |d| if (std.mem.eql(u8, name, d)) return self.fail(.unsupported);
         return self.fail(.predicate);
     }
 

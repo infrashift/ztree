@@ -80,6 +80,8 @@ The function compiles a query for a grammar and writes a blob with no pointers t
 | 7 | `ZTREE_QUERY_ERROR_PREDICATE` | An unknown predicate, wrong arguments or an invalid regex. |
 | 8 | `ZTREE_QUERY_ERROR_UNSUPPORTED` | A supertype, a directive or a regex outside the subset. |
 
+A directive is a predicate whose name ends in `!`, for example `#set!` and `#strip!`. The property predicates `#is?` and `#is-not?` also give `ZTREE_QUERY_ERROR_UNSUPPORTED`. Another unknown predicate gives `ZTREE_QUERY_ERROR_PREDICATE`.
+
 ### Blob accessors
 `ztree_query_pattern_count(blob, blob_len)` and `ztree_query_capture_count(blob, blob_len)` give the counts of a blob, or 0 for a blob that fails its checks. `ztree_query_capture_name(blob, blob_len, index, length_out)` gives a pointer into the blob and the length of the name, or NULL. The name does not end with a zero byte.
 

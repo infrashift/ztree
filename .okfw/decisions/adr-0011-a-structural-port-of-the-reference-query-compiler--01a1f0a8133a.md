@@ -37,3 +37,6 @@ semscope users write Tree-sitter queries, so the query language is part of its c
 - **A new query engine with its own design.** Rejected: the match order and the match count of the reference depend on the step layout and the analysis.
 - **No analysis.** Rejected: ztree then gives no structure errors, and the cursor splits states at other steps.
 - **Accept unknown predicates as go-tree-sitter does.** Rejected: a rule with a predicate that ztree ignores then gives false findings.
+
+## Later change
+2026-11-19: Each predicate name that ends in `!` is a directive and gives kind 8, for example `#strip!` and `#set-adjacent!`. Before this change, only `#set!` gave kind 8, and the other directives gave kind 7. `#is?` and `#is-not?` still give kind 8. [ISSUE-022](/issues/issue-022-query-diff-skips-the-queries-with-directives--01a1f56e542c.md) records the change.

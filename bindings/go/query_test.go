@@ -125,6 +125,8 @@ func TestQueryErrors(t *testing.T) {
 		{"((identifier) @a (#eq? @a))", QueryErrorPredicate, 0, 17},
 		{"((identifier) @a (#match? @a \"(\"))", QueryErrorPredicate, 0, 17},
 		{"((identifier) @a (#set! key value))", QueryErrorUnsupported, 0, 17},
+		{"((identifier) @a (#strip! @a \"x\"))", QueryErrorUnsupported, 0, 17},
+		{"((identifier) @a (#set-adjacent! @a @a))", QueryErrorUnsupported, 0, 17},
 		{"((identifier) @a (#match? @a \"\\\\pL\"))", QueryErrorUnsupported, 0, 17},
 	}
 	for _, c := range cases {

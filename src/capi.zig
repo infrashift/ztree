@@ -282,6 +282,11 @@ test "ztree_query_compile writes a blob or an error with its position" {
     try std.testing.expectEqual(@as(i32, 9), ztree_query_compile(0, pred, pred.len, &blob, blob.len, &size, &err));
     try std.testing.expectEqual(@as(u32, 7), err.kind);
     try std.testing.expectEqual(@as(u32, 17), err.offset);
+    const directives = [_][]const u8{ "((identifier) @a (#set! key value))", "((identifier) @a (#strip! @a \"x\"))", "((identifier) @a (#set-adjacent! @a @a))", "((identifier) @a (#nope! @a))", "((identifier) @a (#is? local))" };
+    for (directives) |d| {
+        try std.testing.expectEqual(@as(i32, 9), ztree_query_compile(0, d.ptr, d.len, &blob, blob.len, &size, &err));
+        try std.testing.expectEqual(QueryError{ .kind = 8, .offset = 17, .row = 0, .column = 17 }, err);
+    }
     const re = "((identifier) @a (#match? @a \"\\\\pL\"))";
     try std.testing.expectEqual(@as(i32, 9), ztree_query_compile(0, re, re.len, &blob, blob.len, &size, &err));
     try std.testing.expectEqual(@as(u32, 8), err.kind);

@@ -2,7 +2,7 @@
 
 ztree is a batch Tree-sitter runtime in Zig 0.17.1 under the NASA Power of 10 rules. lexiscope uses it to extract the comments of source files. semscope uses its trees and queries in place of go-tree-sitter (ADR-0007).
 
-Work on one phase at a time (`CLAUDE.md` rule 1). Each phase from 1 to 20 has a mirror issue in the OKF wiki (`.okfw/issues/`). When you finish a phase, tick this checklist and the acceptance criteria of the issue.
+Work on one phase at a time (`CLAUDE.md` rule 1). Each phase from 1 to 21 has a mirror issue in the OKF wiki (`.okfw/issues/`). When you finish a phase, tick this checklist and the acceptance criteria of the issue.
 
 Loop: do one task, run `zmake check`, and repeat until green. Then update the wiki and commit once per phase.
 
@@ -153,4 +153,15 @@ Acceptance criteria:
 - [x] The lexiscope scan of `CLAUDE.md`, `PLAN.md` and `.okfw` gives 0 errors, 0 warnings and 0 notes
 - [x] With `LEXISCOPE` set to a command that does not exist, `zmake docs-lexiscope` prints a message and passes
 - [x] `zmake -n check` and `make -n check` print the same commands
+- [x] `zmake check` and `make check` pass
+
+## Phase 21 — The queries with directives
+Issue: [ISSUE-022](.okfw/issues/issue-022-query-diff-skips-the-queries-with-directives--01a1f56e542c.md)
+- [x] Run query-diff on each query that ztree rejects only for its predicates, without the predicates
+- [x] Give each predicate name that ends in `!` the error `ZTREE_QUERY_ERROR_UNSUPPORTED`
+- [x] State the rule in `include/ztree.h`, the C ABI spec and ADR-0011
+
+Acceptance criteria:
+- [x] query-diff compares the patterns of all 12 files of `tests/queries/`
+- [x] Tests show the error codes of `#set!`, `#strip!`, `#set-adjacent!` and an unknown predicate
 - [x] `zmake check` and `make check` pass
