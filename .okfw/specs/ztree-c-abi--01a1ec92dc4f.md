@@ -156,6 +156,7 @@ A failed assertion or a safety check is a bug in ztree. The panic handler writes
 - `NewQuery(language, source)` compiles a query in one cgo call and returns `(*Query, *QueryError)`. `QueryError` has the kind, the row, the column, the offset and a message. `Query` has `PatternCount`, `CaptureNames`, `CaptureIndexForName` and `Language`. Two goroutines can use one `Query` at the same time.
 - `QueryCursor.Matches(query, node, text)` runs the query in one cgo call and returns `QueryMatches`. `Next` gives each `QueryMatch` (`PatternIndex` and `Captures`), and `Err` gives the error of the run. A query and a tree of different grammars give `ErrLanguageMismatch`. One goroutine at a time can use a `QueryCursor`.
 - The cgo flags read `../../zig-out/include` and `../../zig-out/lib`. Run `zig build lib --release` before `go build`.
+- `zig build lib` also writes `libhash.go`, the SHA-256 of `libztree.a`. The Go build cache does not hash the library, so a new library changes this Go file, and the next Go build links again. `LibraryHash()` returns the hash. `TestLibraryHash` fails when the file is old ([ADR-0016](/decisions/adr-0016-a-hash-file-of-libztree-a-in-the-go-binding--01a1f47f0da8.md)).
 - The default C compiler works. With `CC="zig cc"` on a host with two GCC installations, add `-Wno-gcc-install-dir-libstdcxx`. Without it, cgo fails on a warning in `runtime/cgo`.
 
 ## Tests

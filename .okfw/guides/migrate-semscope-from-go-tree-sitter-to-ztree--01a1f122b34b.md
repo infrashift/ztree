@@ -18,7 +18,7 @@ description: "The steps, the API map, the error changes, the grammar pin changes
 This guide moves semscope from go-tree-sitter v0.25.0 to the ztree Go binding ([ADR-0007](/decisions/adr-0007-ztree-is-the-tree-sitter-service-of-lexis-and-semscope--01a1ef926073.md)). The [C ABI spec](/specs/ztree-c-abi--01a1ec92dc4f.md) gives the full API. A local semscope branch `ztree-runtime` holds the change and passes the checks below ([ISSUE-015](/issues/issue-015-handoff-to-semscope--01a1ef92fe9b.md)).
 
 ## Steps
-1. Run `zmake lib` in ztree. It writes `zig-out/lib/libztree.a` and `zig-out/include/ztree.h`.
+1. Run `zmake lib` in ztree. It writes `zig-out/lib/libztree.a`, `zig-out/include/ztree.h` and `bindings/go/libhash.go`. After each new library, the next Go build links again ([ADR-0016](/decisions/adr-0016-a-hash-file-of-libztree-a-in-the-go-binding--01a1f47f0da8.md)).
 2. Add `github.com/infrashift/ztree/bindings/go` to `go.mod` with a `replace` to the ztree checkout.
 3. Change the import `github.com/tree-sitter/go-tree-sitter` to the ztree binding. Keep the alias `ts`.
 4. Remove the six grammar modules. Use `ts.NewLanguage(ts.LangGo)` and the other `Lang` values.

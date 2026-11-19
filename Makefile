@@ -4,7 +4,7 @@ ZIG ?= zig
 PYTHON ?= python3
 GO ?= go
 GOFMT ?= $(shell $(GO) env GOROOT)/bin/gofmt
-ZIG_SOURCES := build.zig build.zig.zon src tests
+ZIG_SOURCES := build.zig build.zig.zon src tests tools
 
 .PHONY: check build lib test conformance differential query-diff go lint fmt wiki docs-style
 

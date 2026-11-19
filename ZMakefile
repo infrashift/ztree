@@ -6,7 +6,7 @@ ZIG ?= zig
 PYTHON ?= python3
 GO ?= go
 GOFMT ?= $(shell $(GO) env GOROOT)/bin/gofmt
-ZIG_SOURCES := build.zig build.zig.zon src tests
+ZIG_SOURCES := build.zig build.zig.zon src tests tools
 
 ## check: run every gate (the default goal)
 @check: lint test conformance differential query-diff go wiki docs-style

@@ -2,14 +2,14 @@
 
 ztree is a batch Tree-sitter runtime in Zig 0.17.1 under the NASA Power of 10 rules. lexis uses it to extract the comments of source files. semscope uses its trees and queries in place of go-tree-sitter (ADR-0007).
 
-Work on one phase at a time (`CLAUDE.md` rule 1). Each phase from 1 to 16 has a mirror issue in the OKF wiki (`.okfw/issues/`). When a phase is done, tick this checklist and the acceptance criteria of the issue.
+Work on one phase at a time (`CLAUDE.md` rule 1). Each phase from 1 to 17 has a mirror issue in the OKF wiki (`.okfw/issues/`). When a phase is done, tick this checklist and the acceptance criteria of the issue.
 
 Loop: implement one task, run `zmake check`, and repeat until green. Then update the wiki and commit once per phase.
 
 - Architecture: [ztree architecture overview](.okfw/architecture/ztree-architecture-overview--01a1e96b8ee5.md)
 - Decisions, part 1: [ADR-0001 wiki](.okfw/decisions/adr-0001-adopt-an-okf-wiki-okfw-for-project-knowledge--01a1e96b8ef6.md) · [ADR-0002 toolchain](.okfw/decisions/adr-0002-zig-0-17-1-the-standard-library-and-vendored-c-grammars--01a1e96b8f06.md) · [ADR-0003 Power of 10](.okfw/decisions/adr-0003-adapt-the-nasa-power-of-10-rules-to-ztree--01a1e96b8f17.md) · [ADR-0004 scope](.okfw/decisions/adr-0004-a-batch-tree-sitter-runtime-for-abi-14-and-15--01a1e96b8f27.md)
 - Decisions, part 2: [ADR-0005 arena](.okfw/decisions/adr-0005-one-arena-per-parse-no-reference-counts-and-no-balance-step--01a1ebbb7488.md) · [ADR-0006 Zig grammar](.okfw/decisions/adr-0006-a-patched-zig-grammar-for-zig-0-17-and-empty-containers--01a1ec8a934e.md) · [ADR-0007 semscope scope](.okfw/decisions/adr-0007-ztree-is-the-tree-sitter-service-of-lexis-and-semscope--01a1ef926073.md) · [ADR-0008 flat tree ABI](.okfw/decisions/adr-0008-a-flat-tree-and-a-compiled-query-blob-in-caller-memory--01a1ef929e5c.md) · [ADR-0009 field overrides](.okfw/decisions/adr-0009-field-overrides-and-the-node-rules-of-the-flat-tree--01a1f080b1ed.md) · [ADR-0011 query compiler](.okfw/decisions/adr-0011-a-structural-port-of-the-reference-query-compiler--01a1f0a8133a.md) · [ADR-0010 regex](.okfw/decisions/adr-0010-a-pike-vm-for-an-re2-subset--01a1f0902c3e.md)
-- Decisions, part 3: [ADR-0012 query cursor](.okfw/decisions/adr-0012-a-port-of-the-reference-query-cursor-over-the-flat-tree--01a1f111feba.md) · [ADR-0013 stack heads](.okfw/decisions/adr-0013-a-bound-of-256-glr-stack-heads--01a1f2f0124a.md) · [ADR-0014 repeat depth](.okfw/decisions/adr-0014-no-repeat-depth-in-a-subtree--01a1f309a44d.md) · [ADR-0015 Zig forms](.okfw/decisions/adr-0015-three-rare-zig-forms-in-the-patched-grammar--01a1f3e617cd.md)
+- Decisions, part 3: [ADR-0012 query cursor](.okfw/decisions/adr-0012-a-port-of-the-reference-query-cursor-over-the-flat-tree--01a1f111feba.md) · [ADR-0013 stack heads](.okfw/decisions/adr-0013-a-bound-of-256-glr-stack-heads--01a1f2f0124a.md) · [ADR-0014 repeat depth](.okfw/decisions/adr-0014-no-repeat-depth-in-a-subtree--01a1f309a44d.md) · [ADR-0015 Zig forms](.okfw/decisions/adr-0015-three-rare-zig-forms-in-the-patched-grammar--01a1f3e617cd.md) · [ADR-0016 Go cache](.okfw/decisions/adr-0016-a-hash-file-of-libztree-a-in-the-go-binding--01a1f47f0da8.md)
 - Rules: ADR-0003 for the code. ASD-STE100 for all documentation.
 
 ## Phase 0 — Bootstrap
@@ -56,9 +56,9 @@ Tracking: [ISSUE-006](.okfw/issues/issue-006-conformance-with-grammar-corpus-tes
 - [x] Add the `conformance` target to `ZMakefile`, `Makefile` and `check`
 
 ## Open issues
-- [ISSUE-018](.okfw/issues/issue-018-the-go-build-cache-does-not-see-a-new-libztree-a--01a1f47872d7.md): the Go build cache does not see a new `libztree.a`
+None.
 
-Closed: [ISSUE-009](.okfw/issues/issue-009-rare-zig-forms-that-the-patched-grammar-cannot-read--01a1ec8ab913.md) by [ADR-0015](.okfw/decisions/adr-0015-three-rare-zig-forms-in-the-patched-grammar--01a1f3e617cd.md) in Phase 16. [ISSUE-017](.okfw/issues/issue-017-an-overflow-of-repeat-depth-on-large-repetitions--01a1f2f04d37.md) by [ADR-0014](.okfw/decisions/adr-0014-no-repeat-depth-in-a-subtree--01a1f309a44d.md) in Phase 15. [ISSUE-016](.okfw/issues/issue-016-the-glr-stack-limit-of-64-heads--01a1f080f76c.md) by [ADR-0013](.okfw/decisions/adr-0013-a-bound-of-256-glr-stack-heads--01a1f2f0124a.md) in Phase 14. [ISSUE-008](.okfw/issues/issue-008-zig-0-17-keywords-in-the-zig-grammar--01a1ebfde99b.md) by [ADR-0006](.okfw/decisions/adr-0006-a-patched-zig-grammar-for-zig-0-17-and-empty-containers--01a1ec8a934e.md).
+Closed: [ISSUE-018](.okfw/issues/issue-018-the-go-build-cache-does-not-see-a-new-libztree-a--01a1f47872d7.md) by [ADR-0016](.okfw/decisions/adr-0016-a-hash-file-of-libztree-a-in-the-go-binding--01a1f47f0da8.md) in Phase 17. [ISSUE-009](.okfw/issues/issue-009-rare-zig-forms-that-the-patched-grammar-cannot-read--01a1ec8ab913.md) by [ADR-0015](.okfw/decisions/adr-0015-three-rare-zig-forms-in-the-patched-grammar--01a1f3e617cd.md) in Phase 16. [ISSUE-017](.okfw/issues/issue-017-an-overflow-of-repeat-depth-on-large-repetitions--01a1f2f04d37.md) by [ADR-0014](.okfw/decisions/adr-0014-no-repeat-depth-in-a-subtree--01a1f309a44d.md) in Phase 15. [ISSUE-016](.okfw/issues/issue-016-the-glr-stack-limit-of-64-heads--01a1f080f76c.md) by [ADR-0013](.okfw/decisions/adr-0013-a-bound-of-256-glr-stack-heads--01a1f2f0124a.md) in Phase 14. [ISSUE-008](.okfw/issues/issue-008-zig-0-17-keywords-in-the-zig-grammar--01a1ebfde99b.md) by [ADR-0006](.okfw/decisions/adr-0006-a-patched-zig-grammar-for-zig-0-17-and-empty-containers--01a1ec8a934e.md).
 
 ## Phase 7 — C ABI for Go
 Tracking: [ISSUE-007](.okfw/issues/issue-007-c-abi-and-static-library-for-go-callers--01a1e96b8f9a.md)
@@ -119,3 +119,9 @@ Tracking: [ISSUE-009](.okfw/issues/issue-009-rare-zig-forms-that-the-patched-gra
 - [x] Add the three forms to `zig-0.17.patch` and generate the parser again
 - [x] Add test inputs for the three forms
 - [x] Parse the Zig 0.17.1 standard library and zmake with 0 trees with errors
+
+## Phase 17 — The Go build cache and libztree.a
+Tracking: [ISSUE-018](.okfw/issues/issue-018-the-go-build-cache-does-not-see-a-new-libztree-a--01a1f47872d7.md)
+- [x] Write the SHA-256 of `libztree.a` into `bindings/go/libhash.go` in `zig build lib`
+- [x] Add a binding test that compares the hash with the library
+- [x] Prove that a new library makes Go link again

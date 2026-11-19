@@ -64,11 +64,27 @@ pub fn build(b: *std.Build) void {
     }
     const lib = b.addLibrary(.{ .linkage = .static, .name = "ztree", .root_module = capi_mod });
     lib.bundle_compiler_rt = true;
+    // A Debug build checks the C code of the grammars with UBSan. The runtime
+    // of UBSan goes into the library, so cgo can link a Debug library too.
+    lib.bundle_ubsan_rt = optimize == .debug;
     const lib_install = b.addInstallArtifact(lib, .{});
     const header_install = b.addInstallFileWithDir(b.path("include/ztree.h"), .header, "ztree.h");
     const lib_step = b.step("lib", "Write the static library and the C header to zig-out");
     lib_step.dependOn(&lib_install.step);
     lib_step.dependOn(&header_install.step);
+    // The Go build cache does not hash a library that cgo names with `-l`
+    // (ISSUE-018). `bindings/go/libhash.go` holds the SHA-256 of the library,
+    // so a new library changes a Go source file of the binding.
+    const libhash_exe = b.addExecutable(.{
+        .name = "libhash",
+        .root_module = b.createModule(.{ .root_source_file = b.path("tools/libhash.zig"), .target = b.graph.host }),
+    });
+    const libhash_run = b.addRunArtifact(libhash_exe);
+    libhash_run.addFileArg(lib.getEmittedBin());
+    const libhash_go = libhash_run.addOutputFileArg("libhash.go");
+    const libhash_update = b.addUpdateSourceFiles();
+    libhash_update.addCopyFileToSource(libhash_go, "bindings/go/libhash.go");
+    lib_step.dependOn(&libhash_update.step);
     b.getInstallStep().dependOn(lib_step);
     test_step.dependOn(&b.addRunArtifact(b.addTest(.{ .root_module = capi_mod })).step);
 

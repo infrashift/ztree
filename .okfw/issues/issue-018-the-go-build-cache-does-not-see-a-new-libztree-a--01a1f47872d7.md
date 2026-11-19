@@ -5,7 +5,8 @@ type: "Issue"
 kind: "issue"
 tags:
   - "issue"
-  - "open"
+  - "closed"
+  - "phase-17"
   - "binding"
   - "go"
 created: "2026-11-19T09:41:36-06:00"
@@ -15,7 +16,7 @@ description: "cgo links libztree.a through -l, so the Go build cache can link an
 
 # ISSUE-018: The Go build cache does not see a new libztree.a
 
-**Status:** open · **Phase:** none
+**Status:** closed · **Phase:** 17
 
 ## Description
 The Go binding links `zig-out/lib/libztree.a` with `#cgo LDFLAGS: -L${SRCDIR}/../../zig-out/lib -lztree`. The Go build cache does not hash a library that `-l` names. After a new `libztree.a`, `go build` and `go test` can link the old library from the cache. `-count=1` does not help, because it disables only the cache of test results.
@@ -34,9 +35,16 @@ lexis and semscope link the binding. After each new `libztree.a`, their tests ca
 - Until then, run `go clean -cache` or `go test -a` after a new `libztree.a`.
 
 ## Acceptance Criteria
-- [ ] A new `libztree.a` makes the next `go test` of the binding and of its callers link the new library.
-- [ ] A test fails when the recorded hash and the library differ.
-- [ ] The C ABI spec and the migration guide describe the step.
+- [x] A new `libztree.a` makes the next `go test` of the binding and of its callers link the new library.
+- [x] A test fails when the recorded hash and the library differ.
+- [x] The C ABI spec and the migration guide describe the step.
+
+## Resolution
+[ADR-0016](/decisions/adr-0016-a-hash-file-of-libztree-a-in-the-go-binding--01a1f47f0da8.md) adds the change.
+- `tools/libhash.zig` writes `bindings/go/libhash.go` in the step `lib` of `build.zig`. The file holds `libHash` and `LibraryHash()`, and `.gitignore` holds the file.
+- A constant alone was not enough: two values of an unused constant gave the same test binary. `LibraryHash()` puts the hash in the compiled package.
+- A Debug library now made Go link again. Without the UBSan runtime, that link failed, so the Debug library now holds the runtime (`bundle_ubsan_rt`). The lexis tests and the binding tests pass with a Debug library.
+- `TestLibraryHash` fails when `libhash.go` is old.
 
 ## Related
 - [ISSUE-007](/issues/issue-007-c-abi-and-static-library-for-go-callers--01a1e96b8f9a.md)
