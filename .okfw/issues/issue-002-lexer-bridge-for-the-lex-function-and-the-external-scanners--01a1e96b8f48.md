@@ -18,7 +18,7 @@ description: "Lexer bridge for the lex function and the external scanners."
 **Status:** closed · **Phase:** 2
 
 ## Description
-Implement the `TSLexer` that the lex function and the external scanners call.
+Write the `TSLexer` that the lex function and the external scanners call.
 
 ## Acceptance Criteria
 - [x] `src/lexer.zig` decodes UTF-8 and tracks byte, row and column positions.

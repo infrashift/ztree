@@ -15,10 +15,10 @@ description: "ztree follows the Power of 10 rules in its Zig runtime, with devia
 
 **Status:** Accepted
 **Date:** 2026-11-17
-**Source:** User request. Gerard J. Holzmann, "The Power of 10: Rules for Developing Safety-Critical Code" (2006). zmake ADR-0003.
+**Source:** User request. Gerard J. Holzmann, "The Power of 10" (2006). zmake ADR-0003.
 
 ## Context
-The user requires the Power of 10 rules for the runtime. The rules target C. A GLR parser reads inputs of unknown size and creates stack versions while it runs. The `TSLanguage` ABI calls through function pointers. Some rules need an adaptation.
+The user requires the Power of 10 rules for the runtime. The rules target C. A GLR parser reads inputs of unknown size and creates stack versions while it runs. The `TSLanguage` ABI calls through function pointers. ztree adapts some rules.
 
 ## Decision
 | Rule | ztree adaptation | Check |

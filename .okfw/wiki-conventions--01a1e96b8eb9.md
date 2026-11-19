@@ -29,7 +29,7 @@ This guide defines how the ztree OKF wiki (`.okfw/`) stores project knowledge.
 | `daily/` | daily note | `okfw daily`: what changed, what you learned, what is next. |
 
 ## PLAN.md and issues
-`PLAN.md` is the phase checklist. Each phase has a mirror issue: phases 1 to 7 have ISSUE-001 to ISSUE-007, and phases 8 to 13 have ISSUE-010 to ISSUE-015. Each phase heading in `PLAN.md` has a `Tracking:` line that links to its issue. When a phase is done, tick the `PLAN.md` checkboxes and the acceptance criteria of the issue.
+`PLAN.md` is the phase checklist. Each phase has a mirror issue: phases 1 to 7 have ISSUE-001 to ISSUE-007, and phases 8 to 13 have ISSUE-010 to ISSUE-015. Each phase heading in `PLAN.md` has an `Issue:` line that links to its issue. When you finish a phase, tick the `PLAN.md` checkboxes and the acceptance criteria of the issue.
 
 ## ADRs (`decisions/`)
 - Title: `ADR-NNNN: <decision>`. Number ADRs in sequence. Do not reuse a number.
@@ -51,7 +51,7 @@ All documentation follows ASD-STE100 Simplified Technical English. This includes
 - Use active voice and simple present tense: "The parser pushes the subtree."
 - Start each procedural step with an imperative verb: Run, Read, Inspect, Verify, Add, Set.
 - Keep procedural steps to 20 words or fewer. Keep descriptive sentences to 25 words or fewer.
-- Use a verb, not a noun form: "The cursor visits the node", not "Visitation of the node occurs".
+- Use a verb, not a noun form: "The cursor visits the node", not "A visit of the node occurs".
 - Use one term for one concept. This wiki uses these terms:
   - *runtime*: the ztree Zig code that loads a grammar and parses source text.
   - *reference runtime*: the upstream Tree-sitter C library. ztree uses it as a test oracle only.
@@ -65,6 +65,7 @@ All documentation follows ASD-STE100 Simplified Technical English. This includes
   - *phase*: one unit of work in `PLAN.md`.
 - Do not use the words `should`, `will`, `would`, `please`, `simply`, `just`, `very`, `really` or `easily`. Do not use marketing language.
 - Run `zmake docs-style`. The check (`scripts/ste-check.py`) reports banned words and long sentences as errors. It reports possible passive voice as warnings. Fix the warnings too.
+- Run `zmake docs-lexis`. lexis also reports noun forms of verbs, `-ing` forms and marketing words. Each finding fails the check. Put a technical term in `vocabulary.cue` only when it names a concept of the project, a tool or a standard. Reword other text ([ADR-0018](/decisions/adr-0018-lexis-checks-the-documentation-with-a-repository-vocabulary--01a1f525ba3d.md)).
 
 ## Housekeeping
 - Use `okfw move` and `okfw delete`. Do not use `mv` or `rm`. The okfw commands repair links and update the `index.md` listings.

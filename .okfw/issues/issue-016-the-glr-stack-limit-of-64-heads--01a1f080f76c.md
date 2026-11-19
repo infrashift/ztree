@@ -22,7 +22,7 @@ The GLR stack of ztree holds at most `max_heads` = 64 heads (`src/stack.zig`). T
 
 With `max_heads` = 256, ztree gives the same tree as the reference for this file. The differential step found the file during [ISSUE-011](/issues/issue-011-the-flat-tree-and-the-node-api--01a1ef92fe81.md). It is the only failure in 903 files.
 
-The file also stops a semscope scan of the libstdc++ headers with ztree: `Parse` gives `ErrLimitReached`, and semscope stops at the first file error. See the [migration guide](/guides/migrate-semscope-from-go-tree-sitter-to-ztree--01a1f122b34b.md).
+The file also stops a semscope scan of the libstdc++ headers with ztree: `Parse` gives `ErrLimitReached`, and semscope stops at the first file error. See the [guide to migrate semscope](/guides/migrate-semscope-from-go-tree-sitter-to-ztree--01a1f122b34b.md).
 
 ## Acceptance Criteria
 - [x] Find the largest head count that the reference runtime reaches on the differential corpus and on large C and C++ trees.
@@ -31,7 +31,7 @@ The file also stops a semscope scan of the libstdc++ headers with ztree: `Parse`
 
 ## Resolution
 - A temporary counter recorded the largest head count of each parse on 73,701 files of all six grammars. The largest count is 90, on `src/base/template-utils.h` of V8. Three files need more than 64 heads. Each is C++ code that the C grammar reads.
-- `limits.max_stack_heads` in `src/root.zig` is 256, and `stack.max_heads` reads it. [ADR-0013](/decisions/adr-0013-a-bound-of-256-glr-stack-heads--01a1f2f0124a.md) records the bound and the measurement.
+- `limits.max_stack_heads` in `src/root.zig` is 256, and `stack.max_heads` reads it. [ADR-0013](/decisions/adr-0013-a-bound-of-256-glr-stack-heads--01a1f2f0124a.md) records the bound and the measured counts.
 - `tests/parser_test.zig` has two inputs that need 87 and 71 heads. With 64 heads, the test fails with `TooManyVersions`.
 - A release differential run on libstdc++ `bits/`, V8 `src/base` and V8 `src/objects` compares 660 files with the reference. It finds 0 failures.
 - The scan also found a panic on tables of more than 65,535 items ([ISSUE-017](/issues/issue-017-an-overflow-of-repeat-depth-on-large-repetitions--01a1f2f04d37.md)).

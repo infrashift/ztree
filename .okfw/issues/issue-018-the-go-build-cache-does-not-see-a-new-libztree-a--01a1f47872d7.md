@@ -37,7 +37,7 @@ lexis and semscope link the binding. After each new `libztree.a`, their tests ca
 ## Acceptance Criteria
 - [x] A new `libztree.a` makes the next `go test` of the binding and of its callers link the new library.
 - [x] A test fails when the recorded hash and the library differ.
-- [x] The C ABI spec and the migration guide describe the step.
+- [x] The C ABI spec and the guide to migrate semscope describe the step.
 
 ## Resolution
 [ADR-0016](/decisions/adr-0016-a-hash-file-of-libztree-a-in-the-go-binding--01a1f47f0da8.md) adds the change.

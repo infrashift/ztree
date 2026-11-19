@@ -23,7 +23,7 @@ The reference runtime keeps `repeat_depth`, a `uint16_t`, in each subtree. Only 
 ## Decision
 1. **Remove the field.** `Subtree` has no `repeat_depth`, and `summarizeEnds` does not compute it. No part of ztree read it.
 2. **A test for each grammar.** `tests/parser_test.zig` parses a table of 70,000 literals in each of the six grammars. It compares the result with the reference runtime.
-3. **A linear check for wide nodes.** The sibling functions of the reference TSNode API scan the siblings of a node. Thus the comparison of the flat tree with that API costs time in the square of the child count. `checkWide` in `tests/differential.zig` does all checks of `check` except that comparison. It compares the flat tree with the S-expression of the tree. The table test uses `checkWide`.
+3. **A linear check for wide nodes.** The sibling functions of the reference TSNode API scan the siblings of a node. So the comparison of the flat tree with that API costs time in the square of the child count. `checkWide` in `tests/differential.zig` does all checks of `check` except that comparison. It compares the flat tree with the S-expression of the tree. The table test uses `checkWide`.
 
 ## Consequences
 - A long repetition can no longer stop the process of the caller.
@@ -32,6 +32,6 @@ The reference runtime keeps `repeat_depth`, a `uint16_t`, in each subtree. Only 
 - The flat tree of a table has the parent and sibling links of [ADR-0009](/decisions/adr-0009-field-overrides-and-the-node-rules-of-the-flat-tree--01a1f080b1ed.md). The table test checks the records through the S-expression. The other tests check the links against the reference.
 
 ## Alternatives considered
-- **A wrapping add, as in C.** Rejected: the value then has no meaning, and ztree does not read it.
-- **A saturating `u32`.** Rejected: this keeps a field that no code reads.
+- **An add that wraps, as in C.** Rejected: the value is then of no use, and ztree does not read it.
+- **A `u32` that saturates.** Rejected: this keeps a field that no code reads.
 - **The full flat-tree comparison on a table of 70,000 items.** Rejected: one run took more than 10 minutes in a debug build.

@@ -40,7 +40,7 @@ Both are large tables of literals. The reference runtime also keeps `repeat_dept
 - `tests/parser_test.zig` parses a table of 70,000 literals in each of the six grammars and compares it with the reference. Before the fix, the test panicked in `summarizeEnds`.
 - `checkWide` in `tests/differential.zig` skips the comparison with the sibling functions of the reference TSNode API. That comparison costs time in the square of the child count.
 - A release differential run with `checkWide` on the Go `nistec` directory and on brotli `c/common` compares 44 files with the reference. It finds 0 failures. The two files of this issue are in the run.
-- The scan of [ADR-0013](/decisions/adr-0013-a-bound-of-256-glr-stack-heads--01a1f2f0124a.md) parsed all 73,701 files with a wrapping add in place of the panic. No other panic occurred.
+- The scan of [ADR-0013](/decisions/adr-0013-a-bound-of-256-glr-stack-heads--01a1f2f0124a.md) parsed all 73,701 files with an add that wraps in place of the panic. No other panic occurred.
 - `lastExternalToken` in `src/subtree.zig` stops after `max_tree_depth` levels and then asserts that it found a leaf. Only a right-deep chain of more than 1 Mi levels with external tokens can fail this assertion. No test input reaches it.
 
 ## Related

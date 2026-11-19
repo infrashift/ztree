@@ -36,7 +36,7 @@ Record each corpus test that ztree skips, and the reason, in this issue.
 - [ztree architecture overview](/architecture/ztree-architecture-overview--01a1e96b8ee5.md)
 
 ## Resolution
-- `tests/conformance_test.zig` ports the corpus reader of the tree-sitter CLI v0.27.2 (`crates/cli/src/test.rs`). It handles header suffixes, attribute lines, the longest divider, the input bytes and the output normalization.
+- `tests/conformance_test.zig` ports the corpus reader of the tree-sitter CLI v0.27.2 (`crates/cli/src/test.rs`). It handles header suffixes, attribute lines, the longest divider and the input bytes, and it normalizes the output.
 - `zig build conformance`: 420 of 420 corpus examples give the expected tree. No example fails on the reference runtime either. The step also checks the reference, so it can tell a ztree failure from an upstream failure.
 - `zig build differential` parses each Go, Zig, Python, C and Rust file of the directories in `-Ddiff-dirs`. It compares the node dump, the S-expression, the walk and the comment spans with the reference runtime. By default it reads `src`, `tests`, `scripts` and the reference runtime source, and `zmake check` runs it.
 - External runs on 2026-11-17, all with 0 differences:

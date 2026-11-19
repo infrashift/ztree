@@ -22,10 +22,10 @@ The reference runtime counts references on subtrees and stack nodes. It frees a 
 
 ## Decision
 - **One arena per parse.** Subtrees, child arrays, stack nodes and pop slices come from one arena. ztree frees nothing before the parse ends. Hard limits cap the subtrees and the stack nodes.
-- **No reference counts.** `makeMut` always copies. Each other change in place in `parser.c` touches a new subtree that no other holder can see. The tree is therefore the same.
+- **No reference counts.** `makeMut` always copies. Each other change in place in `parser.c` touches a new subtree that no other holder can see. So the tree is the same.
 - **No inline subtrees.** Every subtree is a heap subtree. The equality checks of the stack compare the same fields, so the result is the same.
 - **No balance step.** The balance step rotates hidden repetition nodes only. The visible tree does not change. The tests flatten repetition nodes before they compare trees.
-- **No incremental reuse.** Each lookahead is a leaf, so no stack link is pending. `breakdown_top_of_stack` and `pop_pending` have no effect, and ztree leaves them out.
+- **No incremental reuse.** Each lookahead is a leaf, so no stack link waits for a later pop. `breakdown_top_of_stack` and `pop_pending` have no effect, and ztree leaves them out.
 - **Explicit stacks.** The merge of stack nodes in `stack_node_add_link` uses a frame stack. The frame stack keeps the depth-first order of the recursion, because the link order sets the order of the slices.
 
 ## Consequences

@@ -49,5 +49,5 @@ The C ABI exports `ztree_regex_match` so that the Go tests can compare ztree wit
 
 ## Alternatives considered
 - **A backtracking engine.** Rejected: the time is exponential for some patterns, and the stack has no fixed bound.
-- **A DFA.** Rejected: the state count can grow exponentially, and a lazy DFA needs a cache with eviction.
+- **A DFA.** Rejected: the state count can grow exponentially, and a lazy DFA needs a cache that removes old states.
 - **Unicode classes and case folding.** Rejected for now: they need large tables. No semscope regex uses them. A later ADR can add them.

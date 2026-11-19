@@ -18,7 +18,7 @@ description: "Parser core with the subtree arena and the GLR stack."
 **Status:** closed · **Phase:** 3
 
 ## Description
-Implement the subtree arena, the GLR stack, the LR loop and the external scanner bridge.
+Add the subtree arena, the GLR stack, the LR loop and the external scanner bridge.
 
 ## Acceptance Criteria
 - [x] `src/subtree.zig` allocates subtrees from one arena with hard limits.
@@ -37,12 +37,12 @@ No recursion. Each loop has a hard limit.
 
 ## Resolution
 - `src/subtree.zig`, `src/stack.zig`, `src/language.zig` and `src/parser.zig` port the reference runtime. [ADR-0005](/decisions/adr-0005-one-arena-per-parse-no-reference-counts-and-no-balance-step--01a1ebbb7488.md) records the differences.
-- The reference runtime also recovers from errors on valid input. After an accept, the other stack versions fail at the end of the input and recover. Phase 3 therefore includes the recovery code of phase 4 (`src/recover.zig`).
+- The reference runtime also recovers from errors on valid input. After an accept, the other stack versions fail at the end of the input and recover. So Phase 3 includes the recovery code of phase 4 (`src/recover.zig`).
 - The stack holds at most 6 versions after each round. During a round, it can hold up to 10 more, as in the reference. A hard limit of 64 versions guards the stack.
 - `tests/parser_test.zig` parses 436 inputs with both runtimes and compares each flattened node. The inputs are each corpus example of four grammars, 16 source files and 11 inputs with keywords or syntax errors. 35 corpus trees contain errors, and they match too.
 - Mutation checks: each of these changes makes the test fail.
   - A reversed tree order.
-  - An ascending sort of the reduce actions.
+  - A sort of the reduce actions in the wrong order.
   - A lost dynamic precedence.
   - A disabled token cache.
   - A disabled recovery strategy.

@@ -81,7 +81,7 @@ The function compiles a query for a grammar and writes a blob with no pointers t
 | 8 | `ZTREE_QUERY_ERROR_UNSUPPORTED` | A supertype, a directive or a regex outside the subset. |
 
 ### Blob accessors
-`ztree_query_pattern_count(blob, blob_len)` and `ztree_query_capture_count(blob, blob_len)` give the counts of a blob, or 0 for a blob that fails its checks. `ztree_query_capture_name(blob, blob_len, index, length_out)` gives a pointer into the blob and the length of the name, or NULL. The name has no terminating zero.
+`ztree_query_pattern_count(blob, blob_len)` and `ztree_query_capture_count(blob, blob_len)` give the counts of a blob, or 0 for a blob that fails its checks. `ztree_query_capture_name(blob, blob_len, index, length_out)` gives a pointer into the blob and the length of the name, or NULL. The name does not end with a zero byte.
 
 ### `int32_t ztree_query_exec(blob, blob_len, nodes, node_count, overrides, override_count, src, len, start_node, matches_out, max_matches, match_count_out, captures_out, max_captures, capture_count_out)`
 The function runs a compiled query over the flat tree of `ztree_parse`, from the node `start_node` (0 for the root). It writes the matches in the order of `ts_query_cursor_next_match` ([ADR-0012](/decisions/adr-0012-a-port-of-the-reference-query-cursor-over-the-flat-tree--01a1f111feba.md)).
@@ -167,6 +167,6 @@ A failed assertion or a safety check is a bug in ztree. The panic handler writes
 - `zig build query-diff`: the matches of `ztree_query_exec` against `ts_query_cursor_next_match` on the upstream query files and the hand-written queries. Add directories with `-Dquery-dirs`.
 - `bindings/go/query_test.go`: the text predicates, the query errors, the API, calls from 8 goroutines and the `ast_query` rules of semscope.
 - `tests/query_test.zig`: `ztree_query_compile` against `ts_query_new` on the upstream query files, hand-written queries and their mutations ([ADR-0011](/decisions/adr-0011-a-structural-port-of-the-reference-query-compiler--01a1f0a8133a.md)).
-- `bindings/go/bench_test.go`: the speed of a parse, a walk and a query. The [migration guide](/guides/migrate-semscope-from-go-tree-sitter-to-ztree--01a1f122b34b.md) gives the results.
+- `bindings/go/bench_test.go`: the speed of a parse, a walk and a query. The [guide to migrate semscope](/guides/migrate-semscope-from-go-tree-sitter-to-ztree--01a1f122b34b.md) gives the results.
 - `bindings/go/regex_test.go`: `ztree_regex_match` against the `regexp` package on a table, on 20,000 random patterns and in the fuzz target `FuzzRegex`.
 - `zig build differential`: each node of each tree against the reference `TSNode` API, and each field lookup against `ts_node_child_by_field_id`.
