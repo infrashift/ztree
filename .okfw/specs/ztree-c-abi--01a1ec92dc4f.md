@@ -150,7 +150,7 @@ A failed assertion or a safety check is a bug in ztree. The panic handler writes
 - `Span` has the same layout as `ztree_span`. Compile-time checks fail the build when the layouts differ.
 - `ExtractComments` and `Parser.Parse` return `ErrABIMismatch` when the header and the library have different ABI versions.
 - `NewLanguage(lang)` gives the metadata of a grammar: `NodeKindForId`, `NodeKindIsNamed`, `NodeKindIsVisible`, `FieldNameForId`, `FieldIdForName` and the counts.
-- `Parser.Parse(src)` makes one cgo call and returns a `*Tree`. It keeps a size hint for each buffer, so one goroutine at a time can use a `Parser`. Two goroutines can read one `Tree` at the same time. The tree keeps no reference to `src`.
+- `Parser.Parse(src)` makes one cgo call and returns a `*Tree`. The node buffer scales with the source, with a node count for each KiB from earlier parses. The parser keeps this count, so one goroutine at a time can use a `Parser`. Two goroutines can read one `Tree` at the same time. The tree keeps no reference to `src`.
 - `Node` and `TreeCursor` have the method names of go-tree-sitter. `Node` has `Kind`, `Child`, `NamedChild`, `ChildByFieldName`, `Parent`, the sibling methods, the positions, `Utf8Text`, `HasError`, `Equals`, `ToSexp` and `Walk`. `TreeCursor` has `GotoFirstChild`, `GotoNextSibling`, `GotoParent` and `FieldName`. Each method reads Go memory only.
 - `Parse` returns `(*Tree, error)`. go-tree-sitter returns a nil tree on failure.
 - `NewQuery(language, source)` compiles a query in one cgo call and returns `(*Query, *QueryError)`. `QueryError` has the kind, the row, the column, the offset and a message. `Query` has `PatternCount`, `CaptureNames`, `CaptureIndexForName` and `Language`. Two goroutines can use one `Query` at the same time.
@@ -165,5 +165,6 @@ A failed assertion or a safety check is a bug in ztree. The panic handler writes
 - `zig build query-diff`: the matches of `ztree_query_exec` against `ts_query_cursor_next_match` on the upstream query files and the hand-written queries. Add directories with `-Dquery-dirs`.
 - `bindings/go/query_test.go`: the text predicates, the query errors, the API, calls from 8 goroutines and the `ast_query` rules of semscope.
 - `tests/query_test.zig`: `ztree_query_compile` against `ts_query_new` on the upstream query files, hand-written queries and their mutations ([ADR-0011](/decisions/adr-0011-a-structural-port-of-the-reference-query-compiler--01a1f0a8133a.md)).
+- `bindings/go/bench_test.go`: the speed of a parse, a walk and a query. The [migration guide](/guides/migrate-semscope-from-go-tree-sitter-to-ztree--01a1f122b34b.md) gives the results.
 - `bindings/go/regex_test.go`: `ztree_regex_match` against the `regexp` package on a table, on 20,000 random patterns and in the fuzz target `FuzzRegex`.
 - `zig build differential`: each node of each tree against the reference `TSNode` API, and each field lookup against `ts_node_child_by_field_id`.

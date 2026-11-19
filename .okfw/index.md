@@ -11,6 +11,7 @@ okf_version: "0.2"
 * [architecture/](architecture/)
 * [daily/](daily/)
 * [decisions/](decisions/)
+* [guides/](guides/)
 * [issues/](issues/)
 * [specs/](specs/)
 

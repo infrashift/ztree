@@ -223,7 +223,7 @@ func TestQueryConcurrency(t *testing.T) {
 	}
 }
 
-func readFile(t *testing.T, path string) []byte {
+func readFile(t testing.TB, path string) []byte {
 	src, err := os.ReadFile(path)
 	if err != nil {
 		t.Error(err)

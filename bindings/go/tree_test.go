@@ -275,8 +275,18 @@ func TestNodeBufferGrows(t *testing.T) {
 			t.Fatalf("list: %s with %d named children", list.Kind(), list.NamedChildCount())
 		}
 	}
-	if p.hint < 10000 {
-		t.Fatalf("the size hint is %d", p.hint)
+	// The hint covers the node count of this source, so a third parse
+	// needs one call.
+	if want := len(src)*p.nodesPerKiB/1024 + 16; want < 10000 {
+		t.Fatalf("the size hint gives %d nodes", want)
+	}
+	// A small source after a large one gets a small buffer.
+	small, err := p.Parse([]byte("x = 1\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c := cap(small.nodes); c > 64 {
+		t.Fatalf("a tree of 6 bytes keeps a buffer of %d nodes", c)
 	}
 }
 

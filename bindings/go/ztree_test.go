@@ -101,7 +101,7 @@ func TestErrors(t *testing.T) {
 }
 
 // goFiles returns the Go files of some GOROOT packages, without testdata.
-func goFiles(t *testing.T) []string {
+func goFiles(t testing.TB) []string {
 	t.Helper()
 	var files []string
 	for _, dir := range []string{"go", "fmt", "strings", "encoding/json", "net/http"} {

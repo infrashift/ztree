@@ -98,6 +98,6 @@ Tracking: [ISSUE-014](.okfw/issues/issue-014-query-execution--01a1ef92fe94.md)
 
 ## Phase 13 — Handoff to semscope
 Tracking: [ISSUE-015](.okfw/issues/issue-015-handoff-to-semscope--01a1ef92fe9b.md)
-- [ ] Update the C ABI spec and add a Go benchmark
-- [ ] Write the semscope migration guide in the wiki
-- [ ] Run the tests and the parity step of a local semscope branch with ztree
+- [x] Update the C ABI spec and add a Go benchmark
+- [x] Write the semscope migration guide in the wiki
+- [x] Run the tests and the parity step of a local semscope branch with ztree

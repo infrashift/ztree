@@ -187,10 +187,17 @@ var ErrNoLanguage = errors.New("ztree: the parser has no language")
 // Parser parses source files with one grammar. It keeps size hints for
 // the buffers, so one goroutine at a time can use a Parser.
 type Parser struct {
-	language      *Language
-	hint          int
+	language *Language
+	// nodesPerKiB is the largest node count for each 1024 source bytes of
+	// a parse of ratioMinBytes or more. The node buffer of a parse scales
+	// with its source, so a Tree does not keep a buffer for a larger file.
+	nodesPerKiB   int
 	overridesHint int
 }
+
+// ratioMinBytes is the smallest source that changes nodesPerKiB. A small
+// source can have many nodes for each byte; a second parse of it is cheap.
+const ratioMinBytes = 4096
 
 // NewParser returns a Parser with no language.
 func NewParser() *Parser { return &Parser{} }
@@ -219,13 +226,15 @@ func (p *Parser) Parse(src []byte) (*Tree, error) {
 	}
 	// Most sources have fewer nodes than bytes / 3, and few overrides. A
 	// larger count costs a second parse.
-	nodes := make([]nodeRecord, max(p.hint, len(src)/3+16))
+	nodes := make([]nodeRecord, len(src)*max(p.nodesPerKiB, 1024/3)/1024+16)
 	overrides := make([]overrideRecord, max(p.overridesHint, 64))
 	for range 2 {
 		count, overrideCount, status := parse(p.language.lang, src, nodes, overrides)
 		switch status {
 		case C.ZTREE_OK:
-			p.hint = max(p.hint, count)
+			if len(src) >= ratioMinBytes {
+				p.nodesPerKiB = max(p.nodesPerKiB, count*1024/len(src)+1)
+			}
 			p.overridesHint = max(p.overridesHint, overrideCount)
 			return newTree(p.language, src, nodes[:count], overrides[:overrideCount]), nil
 		case C.ZTREE_ERROR_BUFFER_TOO_SMALL:

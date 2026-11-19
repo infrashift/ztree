@@ -21,6 +21,8 @@ The GLR stack of ztree holds at most `max_heads` = 64 heads (`src/stack.zig`). T
 
 With `max_heads` = 256, ztree gives the same tree as the reference for this file. The differential step found the file during [ISSUE-011](/issues/issue-011-the-flat-tree-and-the-node-api--01a1ef92fe81.md). It is the only failure in 903 files.
 
+The file also stops a semscope scan of the libstdc++ headers with ztree: `Parse` gives `ErrLimitReached`, and semscope stops at the first file error. See the [migration guide](/guides/migrate-semscope-from-go-tree-sitter-to-ztree--01a1f122b34b.md).
+
 ## Acceptance Criteria
 - [ ] Find the largest head count that the reference runtime reaches on the differential corpus and on large C and C++ trees.
 - [ ] Set `max_heads` from that count with a margin, and record the bound in an ADR ([ADR-0003](/decisions/adr-0003-adapt-the-nasa-power-of-10-rules-to-ztree--01a1e96b8f17.md) needs a fixed bound).
