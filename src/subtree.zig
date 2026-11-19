@@ -50,7 +50,6 @@ pub const Subtree = struct {
     named_child_count: u32 = 0,
     visible_descendant_count: u32 = 0,
     dynamic_precedence: i32 = 0,
-    repeat_depth: u16 = 0,
     production_id: u16 = 0,
     first_leaf_symbol: Symbol = 0,
     first_leaf_parse_state: StateId = 0,
@@ -276,7 +275,6 @@ fn resetSummary(node: *Subtree) void {
     node.named_child_count = 0;
     node.visible_child_count = 0;
     node.error_cost = 0;
-    node.repeat_depth = 0;
     node.visible_descendant_count = 0;
     node.has_external_tokens = false;
     node.depends_on_column = false;
@@ -364,7 +362,8 @@ pub fn summarizeChildren(node: *Subtree, lang: *const Language) void {
     assert(node.lookahead_bytes <= lookahead_end_byte);
 }
 
-/// Set the first leaf, the fragile flags and the repeat depth.
+/// Set the first leaf and the fragile flags. ztree keeps no repeat depth:
+/// only the balance step of the reference reads it (ADR-0005, ISSUE-017).
 fn summarizeEnds(node: *Subtree) void {
     assert(node.children.len > 0);
     const first = node.children[0];
@@ -373,9 +372,6 @@ fn summarizeEnds(node: *Subtree) void {
     node.first_leaf_parse_state = first.leafParseState();
     if (first.fragile_left) node.fragile_left = true;
     if (last.fragile_right) node.fragile_right = true;
-    if (node.children.len >= 2 and !node.visible and !node.named and first.symbol == node.symbol) {
-        node.repeat_depth = @max(first.repeat_depth, last.repeat_depth) + 1;
-    }
     assert(node.first_leaf_symbol == first.leafSymbol());
 }
 

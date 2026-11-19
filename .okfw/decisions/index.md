@@ -17,4 +17,5 @@
 * [ADR-0011: A structural port of the reference query compiler](adr-0011-a-structural-port-of-the-reference-query-compiler--01a1f0a8133a.md) - src/query.zig and src/query_analysis.zig port ts_query_new and its parse-table analysis step for step, and the predicates follow NewQuery of go-tree-sitter.
 * [ADR-0012: A port of the reference query cursor over the flat tree](adr-0012-a-port-of-the-reference-query-cursor-over-the-flat-tree--01a1f111feba.md) - src/query_exec.zig ports ts_query_cursor__advance and next_match over the flat tree, with the cursor status in each node and the text predicates of go-tree-sitter.
 * [ADR-0013: A bound of 256 GLR stack heads](adr-0013-a-bound-of-256-glr-stack-heads--01a1f2f0124a.md) - The GLR stack of ztree holds at most 256 heads, about 2.8 times the largest count on 73,701 files, so C++ headers read as C parse as in the reference.
+* [ADR-0014: No repeat depth in a subtree](adr-0014-no-repeat-depth-in-a-subtree--01a1f309a44d.md) - ztree removes repeat_depth from Subtree, because only the balance step of the reference reads it and its u16 add panicked on tables of more than 65,535 items.
 

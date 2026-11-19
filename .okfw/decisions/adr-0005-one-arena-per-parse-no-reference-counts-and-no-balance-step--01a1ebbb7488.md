@@ -31,6 +31,7 @@ The reference runtime counts references on subtrees and stack nodes. It frees a 
 ## Consequences
 - Memory grows with the work of the parse. The limits `max_subtrees` and `max_stack_nodes` in `src/root.zig` bound it.
 - Repetition subtrees stay deep on the left side. Each walk of the tree uses an explicit stack.
+- ztree keeps no `repeat_depth`, because only the balance step reads it ([ADR-0014](/decisions/adr-0014-no-repeat-depth-in-a-subtree--01a1f309a44d.md)).
 - `tests/parser_test.zig` compares each node of the flattened tree with the reference runtime.
 
 ## Alternatives considered

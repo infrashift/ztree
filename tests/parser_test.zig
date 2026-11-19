@@ -100,6 +100,36 @@ test "parser matches the reference runtime on inputs that need more than 64 stac
     try std.testing.expectEqual(many_heads_inputs.len, totals.compared);
 }
 
+/// The items of each large table. A hidden repetition of n items is a
+/// left-deep chain of depth n, more than the 65,535 of a `u16` (ISSUE-017).
+const large_table_items = 70_000;
+
+/// A table of `large_table_items` literals for each grammar: the text before
+/// the items and the text after them.
+const large_tables = [_]struct { []const u8, []const u8, []const u8 }{
+    .{ "go", "package p\n\nvar table = []int{", "}\n" },
+    .{ "c", "static const int table[] = {", "};\n" },
+    .{ "cpp", "static const int table[] = {", "};\n" },
+    .{ "python", "table = [", "]\n" },
+    .{ "rust", "static TABLE: &[u8] = &[", "];\n" },
+    .{ "zig", "const table = [_]u8{", "};\n" },
+};
+
+test "parser matches the reference runtime on tables of more than 65,535 items" {
+    const gpa = std.testing.allocator;
+    var totals = Totals{};
+    for (large_tables) |table| {
+        var text: std.ArrayList(u8) = .empty;
+        defer text.deinit(gpa);
+        try text.appendSlice(gpa, table[1]);
+        for (0..large_table_items) |_| try text.appendSlice(gpa, "7,");
+        try text.appendSlice(gpa, table[2]);
+        try diff.checkWide(table[0], table[0], text.items, &totals);
+        try std.testing.expect(!totals.last_had_error);
+    }
+    try std.testing.expectEqual(large_tables.len, totals.compared);
+}
+
 test "parser matches the reference runtime on corpus inputs and source files" {
     const gpa = std.testing.allocator;
     var totals = Totals{};

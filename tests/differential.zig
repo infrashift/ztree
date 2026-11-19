@@ -129,10 +129,12 @@ fn flatLinks(nodes: []const FlatNode, i: u32) RefLinks {
     return links;
 }
 
-/// Compare the flat tree with the TSNode API of the reference: each record,
-/// the parent and the siblings of each node, the children, and the result
-/// of `ts_node_child_by_field_id` for each node and each field (ISSUE-011).
-fn compareFlat(gpa: std.mem.Allocator, arena: std.mem.Allocator, lang: *const abi.Language14, name: []const u8, text: []const u8, root: *const Subtree, totals: *Totals) !void {
+/// The flat tree of `root` and its field overrides.
+const Flat = struct { nodes: []FlatNode, overrides: []ztree.flat.FieldOverride };
+
+/// Flatten `root` and compare the S-expression of the flat tree with the
+/// S-expression of the tree. The cost is linear in the node count.
+fn compareFlatSexp(gpa: std.mem.Allocator, arena: std.mem.Allocator, lang: *const abi.Language14, name: []const u8, text: []const u8, root: *const Subtree) !Flat {
     const counts = try ztree.flat.flatten(arena, lang, root, &.{}, &.{});
     const count = counts.nodes;
     const ours = try arena.alloc(FlatNode, count);
@@ -152,6 +154,17 @@ fn compareFlat(gpa: std.mem.Allocator, arena: std.mem.Allocator, lang: *const ab
         std.debug.print("{s}: the S-expression of the flat tree differs at {d}\n tree {s}\n flat {s}\n", .{ name, at, a[from..@min(a.len, at + 80)], b[from..@min(b.len, at + 80)] });
         return error.TestUnexpectedResult;
     }
+    return .{ .nodes = ours, .overrides = overrides };
+}
+
+/// Compare the flat tree with the TSNode API of the reference: each record,
+/// the parent and the siblings of each node, the children, and the result
+/// of `ts_node_child_by_field_id` for each node and each field (ISSUE-011).
+fn compareFlat(gpa: std.mem.Allocator, arena: std.mem.Allocator, lang: *const abi.Language14, name: []const u8, text: []const u8, root: *const Subtree, totals: *Totals) !void {
+    const flat = try compareFlatSexp(gpa, arena, lang, name, text, root);
+    const ours = flat.nodes;
+    const overrides = flat.overrides;
+    const count = ours.len;
     const cap: u32 = @intCast(count + 1);
     const ref = try arena.alloc(FlatNode, cap);
     const links = try arena.alloc(RefLinks, cap);
@@ -238,6 +251,20 @@ fn compareComments(arena: std.mem.Allocator, lang_enum: grammars.Lang, name: []c
 
 /// Parse `text` with both runtimes and compare the dumps.
 pub fn check(lang_name: []const u8, name: []const u8, text: []const u8, totals: *Totals) !void {
+    try checkMode(lang_name, name, text, totals, .full);
+}
+
+/// `check` for a node with very many children. The sibling functions of
+/// the reference TSNode API scan the siblings, so the flat-tree comparison
+/// costs time in the square of the child count. This check compares the
+/// flat tree only with the S-expression of the tree (ISSUE-017).
+pub fn checkWide(lang_name: []const u8, name: []const u8, text: []const u8, totals: *Totals) !void {
+    try checkMode(lang_name, name, text, totals, .wide);
+}
+
+const Mode = enum { full, wide };
+
+fn checkMode(lang_name: []const u8, name: []const u8, text: []const u8, totals: *Totals, mode: Mode) !void {
     const gpa = std.testing.allocator;
     const lang = grammars.language(std.meta.stringToEnum(grammars.Lang, lang_name).?);
     const cap: u32 = 1 << 20;
@@ -260,7 +287,10 @@ pub fn check(lang_name: []const u8, name: []const u8, text: []const u8, totals: 
     try compareDumps(lang, lang_name, name, ref[0..n], ours.items);
     try compareSexp(gpa, arena_state.allocator(), lang, name, text, root);
     try compareWalk(arena_state.allocator(), lang, name, text, root);
-    try compareFlat(gpa, arena_state.allocator(), lang, name, text, root, totals);
+    switch (mode) {
+        .full => try compareFlat(gpa, arena_state.allocator(), lang, name, text, root, totals),
+        .wide => _ = try compareFlatSexp(gpa, arena_state.allocator(), lang, name, text, root),
+    }
     totals.comments += try compareComments(arena_state.allocator(), std.meta.stringToEnum(grammars.Lang, lang_name).?, name, text, root);
     totals.compared += 1;
 }
