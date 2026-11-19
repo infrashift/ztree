@@ -100,7 +100,7 @@ pub const Totals = struct { compared: usize = 0, with_errors: usize = 0, comment
 
 const FlatNode = ztree.flat.Node;
 const none = ztree.flat.none;
-const RefLinks = extern struct { parent: u32, next_sibling: u32, prev_sibling: u32, next_named_sibling: u32, prev_named_sibling: u32, children_ok: u32 };
+const RefLinks = extern struct { parent: u32, next_sibling: u32, prev_sibling: u32, next_named_sibling: u32, prev_named_sibling: u32, children_ok: u32, later: u32 };
 const RefFieldChild = extern struct { node: u32, field_id: u32, child: u32 };
 extern fn ztree_ref_flat(lang: *const abi.Language14, src: [*]const u8, len: u32, recs: [*]FlatNode, links: [*]RefLinks, cap: u32, fields: [*]RefFieldChild, field_cap: u32, field_count: *u32) u32;
 
@@ -109,7 +109,12 @@ extern fn ztree_ref_flat(lang: *const abi.Language14, src: [*]const u8, len: u32
 /// sibling that ends where node `i` ends: an empty node such as a MISSING
 /// node.
 fn flatLinks(nodes: []const FlatNode, i: u32) RefLinks {
-    var links = RefLinks{ .parent = nodes[i].parent, .next_sibling = none, .prev_sibling = none, .next_named_sibling = none, .prev_named_sibling = none, .children_ok = 1 };
+    var links = RefLinks{ .parent = nodes[i].parent, .next_sibling = none, .prev_sibling = none, .next_named_sibling = none, .prev_named_sibling = none, .children_ok = 1, .later = 0 };
+    // The later-sibling flags of `ts_tree_cursor_current_status`, as the query cursor finds them.
+    var later = nodes[i].next_sibling;
+    if (later != none) links.later |= 1;
+    while (later != none and !nodes[later].isNamed()) later = nodes[later].next_sibling;
+    if (later != none) links.later |= 2;
     var next = nodes[i].next_sibling;
     while (next != none and nodes[next].end_byte <= nodes[i].end_byte) next = nodes[next].next_sibling;
     links.next_sibling = next;

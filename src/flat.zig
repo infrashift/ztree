@@ -32,6 +32,10 @@ pub const flag_extra: u16 = 1 << 1;
 pub const flag_missing: u16 = 1 << 2;
 pub const flag_error: u16 = 1 << 3;
 pub const flag_has_error: u16 = 1 << 4;
+/// `can_have_later_siblings_with_this_field` of `ts_tree_cursor_current_status`:
+/// the production of the parent, or of a hidden node between them, has a
+/// later child with the field of the node (ADR-0012).
+pub const flag_later_field: u16 = 1 << 5;
 
 /// One visible node (`ztree_node`). The first child of a node with children
 /// is at the next index.
@@ -55,7 +59,10 @@ pub const Node = extern struct {
     /// parent, inherited through hidden nodes, or 0.
     field_id: FieldId,
     flags: u16,
-    reserved: u16 = 0,
+    /// The field id of `ts_tree_cursor_current_status`, which the query
+    /// cursor reads. It differs from `field_id` only for an extra node in a
+    /// hidden node with a field (ADR-0012).
+    status_field_id: FieldId = 0,
 
     pub fn isNamed(self: Node) bool {
         assert(self.start_byte <= self.end_byte);
@@ -81,6 +88,13 @@ const Frame = struct {
     inherited_field: FieldId,
     /// True when the subtree is the node of the top entry of `owners`.
     owns: bool,
+    /// For `ts_tree_cursor_current_status`, which does not stop at an extra
+    /// node: the field of the nearest hidden level, and its later-field flag.
+    chain_field: FieldId = 0,
+    chain_can_later: bool = false,
+    /// The fields that a later child can have at this hidden level or above,
+    /// as a bit set. Empty for a visible node.
+    later_above: []const u64 = &.{},
 };
 
 /// A visible node whose children the walk visits.
@@ -124,7 +138,7 @@ fn ownField(fields: []const abi.FieldMapEntry, structural_index: u32) FieldId {
 }
 
 /// The record of `node`, without its links and counts.
-fn record(lang: *const Language, node: tree.Node, parent: u32, field_id: FieldId) Node {
+fn record(lang: *const Language, node: tree.Node, parent: u32, field_id: FieldId, status: Status) Node {
     const s = node.start();
     const e = node.end();
     assert(s.bytes <= e.bytes);
@@ -137,6 +151,7 @@ fn record(lang: *const Language, node: tree.Node, parent: u32, field_id: FieldId
     // `ts_node_has_error`: an ERROR node, or a node with an error cost. An
     // ERROR leaf can have no error cost.
     if (symbol == abi.builtin_sym_error or node.subtree.errorCost() > 0) flags |= flag_has_error;
+    if (status.can_later) flags |= flag_later_field;
     assert(parent == none or parent < limits.max_subtrees);
     return .{
         .start_byte = s.bytes,
@@ -152,7 +167,28 @@ fn record(lang: *const Language, node: tree.Node, parent: u32, field_id: FieldId
         .symbol = symbol,
         .field_id = field_id,
         .flags = flags,
+        .status_field_id = status.field_id,
     };
+}
+
+/// The field part of `ts_tree_cursor_current_status` for one node.
+const Status = struct { field_id: FieldId = 0, can_later: bool = false };
+
+fn hasBit(set: []const u64, field_id: FieldId) bool {
+    assert(field_id > 0);
+    const word = field_id / 64;
+    assert(set.len <= 1024);
+    return word < set.len and set[word] & (@as(u64, 1) << @intCast(field_id % 64)) != 0;
+}
+
+/// True when a field map entry for `field_id` follows `structural_index`.
+fn laterEntry(fields: []const abi.FieldMapEntry, field_id: FieldId, structural_index: u32) bool {
+    assert(field_id > 0);
+    assert(fields.len <= std.math.maxInt(u16));
+    for (fields) |entry| {
+        if (entry.field_id == field_id and entry.child_index > structural_index) return true;
+    }
+    return false;
 }
 
 /// The state of one flatten walk. It keeps each record and each node, so
@@ -166,12 +202,12 @@ const Flattener = struct {
     owners: std.ArrayList(Owner) = .empty,
 
     /// Add the record of `node` and link it to its owner.
-    fn emit(self: *Flattener, node: tree.Node, field_id: FieldId) Error!void {
+    fn emit(self: *Flattener, node: tree.Node, field_id: FieldId, status: Status) Error!void {
         const index: u32 = @intCast(self.records.items.len);
         assert(field_id <= self.lang.field_count);
         if (index >= limits.max_subtrees) return error.TreeTooDeep;
         const parent: u32 = if (self.owners.items.len > 0) self.owners.items[self.owners.items.len - 1].index else none;
-        try self.records.append(self.arena, record(self.lang, node, parent, field_id));
+        try self.records.append(self.arena, record(self.lang, node, parent, field_id, status));
         try self.nodes.append(self.arena, node);
         if (self.owners.items.len > 0) {
             const owner = &self.owners.items[self.owners.items.len - 1];
@@ -215,6 +251,7 @@ const Flattener = struct {
         const top = &self.frames.items[self.frames.items.len - 1];
         assert(top.child_index < top.subtree.children.len);
         const child = top.subtree.children[top.child_index];
+        const structural = top.structural_index;
         const alias = if (child.extra) 0 else language.aliasAt(self.lang, top.subtree.productionId(), top.structural_index);
         const node = tree.Node{ .subtree = child, .offset = top.offset, .alias = alias };
         // `ts_tree_cursor_current_field_id`: the field of the nearest level,
@@ -228,14 +265,56 @@ const Flattener = struct {
         top.child_index += 1;
         if (!child.extra) top.structural_index += 1;
         assert(top.child_index <= top.subtree.children.len);
-        if (node.isVisible()) return self.emit(node, field_id);
-        if (child.children.len > 0) try self.push(node, field_id, false);
+        const own: FieldId = if (child.extra) 0 else ownField(top.fields, structural);
+        if (node.isVisible()) return self.emit(node, field_id, statusOf(top, own, structural));
+        if (child.children.len == 0) return;
+        const chain = try self.chainFor(top, own, child.extra, structural);
+        try self.push(node, field_id, false);
+        const frame = &self.frames.items[self.frames.items.len - 1];
+        frame.chain_field = chain.field;
+        frame.chain_can_later = chain.can_later;
+        frame.later_above = chain.later_above;
+    }
+
+    /// The status of a visible child of `top` with field `own` at
+    /// `structural`. Without its own field, the node takes the field of the
+    /// nearest hidden level.
+    fn statusOf(top: *const Frame, own: FieldId, structural: u32) Status {
+        assert(structural <= top.subtree.children.len);
+        if (own == 0) return .{ .field_id = top.chain_field, .can_later = top.chain_can_later };
+        assert(top.chain_field == 0 or !top.owns);
+        return .{ .field_id = own, .can_later = laterEntry(top.fields, own, structural) or hasBit(top.later_above, own) };
+    }
+
+    /// The chain values of a hidden child of `top`.
+    fn chainFor(self: *Flattener, top: *const Frame, own: FieldId, extra: bool, structural: u32) Error!struct { field: FieldId, can_later: bool, later_above: []const u64 } {
+        assert(structural <= top.subtree.children.len);
+        var later = top.later_above;
+        if (!extra) {
+            var added = false;
+            const words = @as(usize, self.lang.field_count) / 64 + 1;
+            var set: []u64 = &.{};
+            for (top.fields) |entry| {
+                if (entry.child_index <= structural or hasBit(later, entry.field_id)) continue;
+                if (!added) {
+                    set = try self.arena.alloc(u64, words);
+                    @memset(set, 0);
+                    @memcpy(set[0..later.len], later);
+                    added = true;
+                }
+                set[entry.field_id / 64] |= @as(u64, 1) << @intCast(entry.field_id % 64);
+            }
+            if (added) later = set;
+        }
+        assert(later.len <= @as(usize, self.lang.field_count) / 64 + 1);
+        if (own != 0) return .{ .field = own, .can_later = hasBit(later, own), .later_above = later };
+        return .{ .field = top.chain_field, .can_later = top.chain_can_later, .later_above = later };
     }
 
     /// Walk the tree under `root` and add a record for each visible node.
     fn walk(self: *Flattener, root: *const Subtree) Error!void {
         assert(self.records.items.len == 0);
-        try self.emit(tree.rootNode(root), 0);
+        try self.emit(tree.rootNode(root), 0, .{});
         var steps: usize = 0;
         while (self.frames.items.len > 0) : (steps += 1) {
             assert(steps <= limits.max_subtrees * 2);

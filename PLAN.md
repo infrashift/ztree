@@ -92,9 +92,9 @@ Tracking: [ISSUE-013](.okfw/issues/issue-013-the-query-compiler--01a1ef92fe8e.md
 
 ## Phase 12 — Query execution
 Tracking: [ISSUE-014](.okfw/issues/issue-014-query-execution--01a1ef92fe94.md)
-- [ ] Match a compiled query against a flat tree (`src/query_exec.zig`) and export `ztree_query_exec`
-- [ ] Add `NewQuery` and `QueryCursor` to the Go binding
-- [ ] Compare the matches with the reference query cursor in `zig build query-diff`, and add the target to `check`
+- [x] Match a compiled query against a flat tree (`src/query_exec.zig`) and export `ztree_query_exec`
+- [x] Add `NewQuery` and `QueryCursor` to the Go binding
+- [x] Compare the matches with the reference query cursor in `zig build query-diff`, and add the target to `check`
 
 ## Phase 13 — Handoff to semscope
 Tracking: [ISSUE-015](.okfw/issues/issue-015-handoff-to-semscope--01a1ef92fe9b.md)

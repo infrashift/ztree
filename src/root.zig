@@ -14,6 +14,7 @@ pub const parser = @import("parser.zig");
 pub const query = @import("query.zig");
 pub const query_analysis = @import("query_analysis.zig");
 pub const query_blob = @import("query_blob.zig");
+pub const query_exec = @import("query_exec.zig");
 pub const query_predicates = @import("query_predicates.zig");
 pub const recover = @import("recover.zig");
 pub const regex = @import("regex.zig");

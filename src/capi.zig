@@ -28,7 +28,7 @@ fn abortWithMessage(msg: []const u8, first_trace_addr: ?usize) noreturn {
 }
 
 /// `ZTREE_ABI_VERSION` of `include/ztree.h`. Change it with each change of the header.
-pub const abi_version: u32 = 5;
+pub const abi_version: u32 = 6;
 
 /// The status codes of `include/ztree.h`.
 pub const Status = enum(i32) {
@@ -188,6 +188,7 @@ fn regexMatch(pattern: ?[*]const u8, pattern_len: usize, text: ?[*]const u8, tex
     };
     const scratch = arena.alloc(u32, regex.scratchLen(prog)) catch return .out_of_memory;
     matched.* = @intFromBool(regex.isMatch(prog, if (text) |t| t[0..text_len] else "", scratch));
+    assert(matched.* == 0 or matched.* == 1);
     assert(prog.insts.len <= regex.max_insts);
     return .ok;
 }
@@ -239,7 +240,7 @@ fn queryCompile(lang_value: u32, src: ?[*]const u8, len: usize, blob_out: ?[*]u8
     const out: []u8 = if (blob_out) |b| b[0..blob_cap] else &.{};
     const size = ztree.query_blob.write(arena, lang_value, q, &preds, out) catch return .out_of_memory;
     size_out.* = size;
-    assert(size > 0);
+    assert(size >= @sizeOf(ztree.query_blob.Header));
     return if (size > blob_cap) .buffer_too_small else .ok;
 }
 
@@ -267,6 +268,12 @@ test "ztree_query_compile writes a blob or an error with its position" {
     try std.testing.expect(size > @sizeOf(ztree.query_blob.Header));
     const view = try ztree.query_blob.View.init(blob[0..size]);
     try std.testing.expectEqualStrings("name", view.captureName(0));
+    try std.testing.expectEqual(@as(u32, 1), ztree_query_pattern_count(&blob, size));
+    try std.testing.expectEqual(@as(u32, 1), ztree_query_capture_count(&blob, size));
+    var name_len: usize = 0;
+    try std.testing.expectEqualStrings("name", ztree_query_capture_name(&blob, size, 0, &name_len).?[0..name_len]);
+    try std.testing.expectEqual(@as(?[*]const u8, null), ztree_query_capture_name(&blob, size, 1, &name_len));
+    try std.testing.expectEqual(@as(u32, 0), ztree_query_pattern_count(&blob, size - 4));
     try std.testing.expectEqual(@as(i32, 1), ztree_query_compile(0, q, q.len, &blob, 8, &size, &err));
     const bad = "(identifier) @a\n  (no_such_node)";
     try std.testing.expectEqual(@as(i32, 9), ztree_query_compile(0, bad, bad.len, &blob, blob.len, &size, &err));
@@ -280,6 +287,130 @@ test "ztree_query_compile writes a blob or an error with its position" {
     try std.testing.expectEqual(@as(u32, 8), err.kind);
     try std.testing.expectEqual(@as(i32, 2), ztree_query_compile(6, q, q.len, &blob, blob.len, &size, &err));
     try std.testing.expectEqual(@as(i32, 2), ztree_query_compile(0, q, q.len, blob[1..].ptr, 8, &size, &err));
+}
+
+/// The output arguments of `ztree_query_exec`.
+const ExecOut = struct {
+    matches: ?[*]ztree.query_exec.Match,
+    max_matches: usize,
+    match_count: ?*usize,
+    captures: ?[*]ztree.query_exec.Capture,
+    max_captures: usize,
+    capture_count: ?*usize,
+};
+
+/// `ztree_query_exec`: see `include/ztree.h`.
+export fn ztree_query_exec(blob: ?[*]const u8, blob_len: usize, nodes: ?[*]const flat.Node, node_count: usize, overrides: ?[*]const flat.FieldOverride, override_count: usize, src: ?[*]const u8, len: usize, start_node: u32, matches_out: ?[*]ztree.query_exec.Match, max_matches: usize, match_count_out: ?*usize, captures_out: ?[*]ztree.query_exec.Capture, max_captures: usize, capture_count_out: ?*usize) callconv(.c) i32 {
+    const out = ExecOut{ .matches = matches_out, .max_matches = max_matches, .match_count = match_count_out, .captures = captures_out, .max_captures = max_captures, .capture_count = capture_count_out };
+    const status = queryExec(blob, blob_len, nodes, node_count, overrides, override_count, src, len, start_node, out);
+    assert(status != .ok or match_count_out.?.* <= max_matches);
+    assert(status != .ok or capture_count_out.?.* <= max_captures);
+    return @backingInt(status);
+}
+
+fn queryExec(blob: ?[*]const u8, blob_len: usize, nodes: ?[*]const flat.Node, node_count: usize, overrides: ?[*]const flat.FieldOverride, override_count: usize, src: ?[*]const u8, len: usize, start_node: u32, out: ExecOut) Status {
+    const match_count = out.match_count orelse return .invalid_argument;
+    const capture_count = out.capture_count orelse return .invalid_argument;
+    match_count.* = 0;
+    capture_count.* = 0;
+    const b = blob orelse return .invalid_argument;
+    const node_ptr = nodes orelse return .invalid_argument;
+    if (@intFromPtr(b) % ztree.query_blob.alignment != 0) return .invalid_argument;
+    if ((overrides == null and override_count > 0) or (src == null and len > 0)) return .invalid_argument;
+    if ((out.matches == null and out.max_matches > 0) or (out.captures == null and out.max_captures > 0)) return .invalid_argument;
+    if (node_count == 0 or node_count > limits.max_subtrees or start_node >= node_count or len > limits.max_source_bytes) return .invalid_argument;
+    const aligned: [*]align(ztree.query_blob.alignment) const u8 = @alignCast(b);
+    const view = ztree.query_blob.View.init(aligned[0..blob_len]) catch return .invalid_argument;
+    const tree_nodes = node_ptr[0..node_count];
+    assert(tree_nodes.len > 0 and start_node < tree_nodes.len);
+    const tree_overrides: []const flat.FieldOverride = if (overrides) |o| o[0..override_count] else &.{};
+    const text: []const u8 = if (src) |p| p[0..len] else "";
+    if (!ztree.query_exec.validTree(tree_nodes, tree_overrides, len)) return .invalid_argument;
+    var arena_state = std.heap.ArenaAllocator.init(std.heap.c_allocator);
+    defer arena_state.deinit();
+    const in = ztree.query_exec.Input{ .view = &view, .nodes = tree_nodes, .overrides = tree_overrides, .text = text, .start = start_node };
+    const matches: []ztree.query_exec.Match = if (out.matches) |m| m[0..out.max_matches] else &.{};
+    const captures: []ztree.query_exec.Capture = if (out.captures) |c| c[0..out.max_captures] else &.{};
+    const counts = ztree.query_exec.exec(arena_state.allocator(), in, false, matches, captures) catch |err| return switch (err) {
+        error.OutOfMemory => .out_of_memory,
+        error.LimitReached => .limit_reached,
+    };
+    match_count.* = counts.matches;
+    capture_count.* = counts.captures;
+    // Each capture belongs to a match.
+    assert(counts.matches > 0 or counts.captures == 0);
+    return if (counts.matches > matches.len or counts.captures > captures.len) .buffer_too_small else .ok;
+}
+
+test "ztree_query_exec runs a query over a flat tree" {
+    const src = "package p\nfunc f() { panic(1); g(2) }\n";
+    var nodes: [64]flat.Node = undefined;
+    var count: usize = 0;
+    var ovs: [4]flat.FieldOverride = undefined;
+    var ov_count: usize = 0;
+    try std.testing.expectEqual(@as(i32, 0), ztree_parse(0, src, src.len, &nodes, nodes.len, &count, &ovs, ovs.len, &ov_count));
+    var blob: [8192]u8 align(4) = undefined;
+    var size: usize = 0;
+    var err: QueryError = undefined;
+    const q = "(call_expression function: (identifier) @f (#eq? @f \"panic\"))";
+    try std.testing.expectEqual(@as(i32, 0), ztree_query_compile(0, q, q.len, &blob, blob.len, &size, &err));
+    var matches: [4]ztree.query_exec.Match = undefined;
+    var captures: [4]ztree.query_exec.Capture = undefined;
+    var mc: usize = 0;
+    var cc: usize = 0;
+    try std.testing.expectEqual(@as(i32, 0), ztree_query_exec(&blob, size, &nodes, count, &ovs, ov_count, src, src.len, 0, &matches, matches.len, &mc, &captures, captures.len, &cc));
+    try std.testing.expectEqual(@as(usize, 1), mc);
+    try std.testing.expectEqual(@as(usize, 1), cc);
+    const n = nodes[captures[0].node];
+    try std.testing.expectEqualStrings("panic", src[n.start_byte..n.end_byte]);
+    try std.testing.expectEqual(@as(i32, 1), ztree_query_exec(&blob, size, &nodes, count, &ovs, ov_count, src, src.len, 0, null, 0, &mc, null, 0, &cc));
+    try std.testing.expectEqual(@as(usize, 1), mc);
+    blob[size - 1] ^= 1;
+    try std.testing.expectEqual(@as(i32, 2), ztree_query_exec(&blob, size, &nodes, count, &ovs, ov_count, src, src.len, 0, &matches, matches.len, &mc, &captures, captures.len, &cc));
+    blob[size - 1] ^= 1;
+    nodes[3].parent = 7;
+    try std.testing.expectEqual(@as(i32, 2), ztree_query_exec(&blob, size, &nodes, count, &ovs, ov_count, src, src.len, 0, &matches, matches.len, &mc, &captures, captures.len, &cc));
+}
+
+/// The view of a blob from caller memory, or null when the blob fails its checks.
+fn blobView(blob: ?[*]const u8, blob_len: usize) ?ztree.query_blob.View {
+    const b = blob orelse return null;
+    if (@intFromPtr(b) % ztree.query_blob.alignment != 0) return null;
+    const aligned: [*]align(ztree.query_blob.alignment) const u8 = @alignCast(b);
+    const view = ztree.query_blob.View.init(aligned[0..blob_len]) catch return null;
+    assert(view.header.size == blob_len);
+    assert(view.blob.len == blob_len);
+    return view;
+}
+
+/// `ztree_query_pattern_count`: the number of patterns of a blob, or 0.
+export fn ztree_query_pattern_count(blob: ?[*]const u8, blob_len: usize) callconv(.c) u32 {
+    const view = blobView(blob, blob_len) orelse return 0;
+    const count = view.get(.patterns).len;
+    assert(count <= std.math.maxInt(u16));
+    assert(count == view.get(.pattern_text_predicates).len);
+    return @intCast(count);
+}
+
+/// `ztree_query_capture_count`: the number of captures of a blob, or 0.
+export fn ztree_query_capture_count(blob: ?[*]const u8, blob_len: usize) callconv(.c) u32 {
+    const view = blobView(blob, blob_len) orelse return 0;
+    assert(view.header.capture_count == view.get(.capture_slices).len);
+    assert(view.header.capture_count <= std.math.maxInt(u16));
+    return view.header.capture_count;
+}
+
+/// `ztree_query_capture_name`: the name of a capture, or NULL.
+export fn ztree_query_capture_name(blob: ?[*]const u8, blob_len: usize, index: u32, length_out: ?*usize) callconv(.c) ?[*]const u8 {
+    const len_out = length_out orelse return null;
+    len_out.* = 0;
+    const view = blobView(blob, blob_len) orelse return null;
+    if (index >= view.header.capture_count) return null;
+    const name = view.captureName(index);
+    len_out.* = name.len;
+    assert(name.len <= ztree.query.max_query_bytes);
+    assert(len_out.* == name.len);
+    return name.ptr;
 }
 
 /// The grammar of a `ZTREE_LANG_*` value, or null.

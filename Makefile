@@ -6,10 +6,10 @@ GO ?= go
 GOFMT ?= $(shell $(GO) env GOROOT)/bin/gofmt
 ZIG_SOURCES := build.zig build.zig.zon src tests
 
-.PHONY: check build lib test conformance differential go lint fmt wiki docs-style
+.PHONY: check build lib test conformance differential query-diff go lint fmt wiki docs-style
 
 ## check: run every gate (the default goal)
-check: lint test conformance differential go wiki docs-style
+check: lint test conformance differential query-diff go wiki docs-style
 
 ## build: compile the library into zig-out
 build:
@@ -36,6 +36,10 @@ conformance:
 ## differential: parse the source files of this repository with ztree and the reference runtime
 differential:
 	$(ZIG) build differential --summary all
+
+## query-diff: compare the query matches with the reference query cursor
+query-diff:
+	$(ZIG) build query-diff --summary all
 
 ## lint: check the formatting and the Power of 10 rules
 lint:

@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 /* The version of this header. ztree_abi_version() returns the version of the library. */
-#define ZTREE_ABI_VERSION 5
+#define ZTREE_ABI_VERSION 6
 
 /* Grammars. */
 #define ZTREE_LANG_GO 0
@@ -95,6 +95,7 @@ int32_t ztree_extract_comments(uint32_t lang, const uint8_t *src, size_t len,
 #define ZTREE_NODE_MISSING 0x4u   /* ts_node_is_missing */
 #define ZTREE_NODE_ERROR 0x8u     /* ts_node_is_error */
 #define ZTREE_NODE_HAS_ERROR 0x10u /* ts_node_has_error */
+#define ZTREE_NODE_LATER_FIELD 0x20u /* A later sibling can have the field of the node (the query cursor reads it). */
 
 /*
  * One node. Bytes, rows and columns follow the rules of ztree_span. The
@@ -114,7 +115,7 @@ typedef struct ztree_node {
   uint16_t symbol;            /* ts_node_symbol: the public symbol, with the alias applied. */
   uint16_t field_id;          /* ts_tree_cursor_current_field_id, or 0. */
   uint16_t flags;             /* ZTREE_NODE_* bits. */
-  uint16_t reserved;          /* 0. */
+  uint16_t status_field_id;   /* The field id that the query cursor reads; it differs from field_id only for an extra node in a hidden node. */
 } ztree_node;
 
 /*
@@ -220,6 +221,49 @@ typedef struct ztree_query_error {
 int32_t ztree_query_compile(uint32_t lang, const uint8_t *src, size_t len,
                             uint8_t *blob_out, size_t blob_cap,
                             size_t *blob_size_out, ztree_query_error *error_out);
+
+/* The number of patterns and of captures of a blob, or 0 for a blob that fails its checks. */
+uint32_t ztree_query_pattern_count(const uint8_t *blob, size_t blob_len);
+uint32_t ztree_query_capture_count(const uint8_t *blob, size_t blob_len);
+
+/*
+ * The name of capture index of a blob, with its length in *length_out, or
+ * NULL. The name points into the blob and has no terminating zero.
+ */
+const uint8_t *ztree_query_capture_name(const uint8_t *blob, size_t blob_len,
+                                        uint32_t index, size_t *length_out);
+
+/* One match of ztree_query_exec: its pattern and the number of its captures. */
+typedef struct ztree_match {
+  uint32_t pattern_index;
+  uint32_t capture_count;
+} ztree_match;
+
+/* One capture: a node index of the flat tree and a capture id of the query. */
+typedef struct ztree_capture {
+  uint32_t node;
+  uint32_t index;
+} ztree_capture;
+
+/*
+ * Run a compiled query over the flat tree of ztree_parse, from the node
+ * start_node (0 for the root). src[0..len) is the source of the tree; the
+ * text predicates read it. Write the matches in the order of the Tree-sitter
+ * query cursor, without the matches that fail a text predicate. The
+ * captures of each match follow the captures of the match before it.
+ *
+ * Returns ZTREE_OK, or ZTREE_ERROR_BUFFER_TOO_SMALL when a count is more than
+ * the size of its buffer; both counts are then valid. Returns
+ * ZTREE_ERROR_INVALID_ARGUMENT for a blob or a tree that fails its checks,
+ * and ZTREE_ERROR_LIMIT_REACHED for more in-progress states than the limit.
+ * The tree must come from the grammar of the query.
+ */
+int32_t ztree_query_exec(const uint8_t *blob, size_t blob_len,
+                         const ztree_node *nodes, size_t node_count,
+                         const ztree_field_override *overrides, size_t override_count,
+                         const uint8_t *src, size_t len, uint32_t start_node,
+                         ztree_match *matches_out, size_t max_matches, size_t *match_count_out,
+                         ztree_capture *captures_out, size_t max_captures, size_t *capture_count_out);
 
 /*
  * Report in *matched_out whether the regex pattern[0..pattern_len) matches

@@ -164,6 +164,42 @@ pub fn build(b: *std.Build) void {
     query_mod.addOptions("query_corpus", query_corpus);
     test_step.dependOn(&b.addRunArtifact(b.addTest(.{ .root_module = query_mod })).step);
 
+    // The query differential step (ISSUE-014): `zig build query-diff`.
+    const query_diff_mod = b.createModule(.{
+        .root_source_file = b.path("tests/query_diff.zig"),
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+        .imports = &.{.{ .name = "ztree", .module = mod }},
+    });
+    query_diff_mod.addCSourceFile(.{ .file = b.path("tests/ref_shim.c"), .flags = &oracle_flags });
+    query_diff_mod.addIncludePath(b.path("third_party/tree-sitter/lib/include"));
+    query_diff_mod.addIncludePath(b.path("third_party/tree-sitter/lib/src"));
+    query_diff_mod.linkLibrary(oracle);
+    query_diff_mod.addOptions("query_corpus", query_corpus);
+    const query_diff_options = b.addOptions();
+    query_diff_options.addOption([]const []const u8, "dirs", b.option([]const []const u8, "query-dirs", "Directories for the query differential step") orelse
+        &[_][]const u8{ "src", "tests", "scripts", "third_party/grammars/cpp/examples" });
+    query_diff_mod.addOptions("query_diff_options", query_diff_options);
+    for (query_files) |f| query_diff_mod.addAnonymousImport(f[1], .{ .root_source_file = b.path(f[1]) });
+    const query_diff_corpus = b.addOptions();
+    var qd_langs: [parser_samples.len][]const u8 = undefined;
+    var qd_paths: [parser_samples.len][]const u8 = undefined;
+    var qd_count: usize = 0;
+    for (parser_samples) |sample| {
+        if (!std.mem.eql(u8, sample[1], "corpus")) continue;
+        qd_langs[qd_count] = sample[0];
+        qd_paths[qd_count] = sample[2];
+        qd_count += 1;
+        query_diff_mod.addAnonymousImport(sample[2], .{ .root_source_file = b.path(sample[2]) });
+    }
+    query_diff_corpus.addOption([]const []const u8, "langs", qd_langs[0..qd_count]);
+    query_diff_corpus.addOption([]const []const u8, "paths", qd_paths[0..qd_count]);
+    query_diff_mod.addOptions("corpus", query_diff_corpus);
+    const query_diff_run = b.addRunArtifact(b.addTest(.{ .root_module = query_diff_mod }));
+    query_diff_run.has_side_effects = true;
+    b.step("query-diff", "Compare query matches with the reference query cursor").dependOn(&query_diff_run.step);
+
     // Corpus conformance (ISSUE-006): `zig build conformance`.
     const conformance_mod = b.createModule(.{
         .root_source_file = b.path("tests/conformance_test.zig"),

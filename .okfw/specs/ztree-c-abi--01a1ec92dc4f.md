@@ -13,7 +13,7 @@ description: "The C ABI of libztree.a: ztree_extract_comments, ztree_parse, the 
 
 # ztree C ABI
 
-**Version:** 5 (`ZTREE_ABI_VERSION`). Version 2 adds `ZTREE_LANG_CPP`. Version 3 adds `ztree_parse` and the language functions. Version 5 adds `ztree_query_compile` and status code 9 ([ADR-0011](/decisions/adr-0011-a-structural-port-of-the-reference-query-compiler--01a1f0a8133a.md)). Version 4 adds `ztree_regex_match` and status codes 7 and 8 ([ADR-0010](/decisions/adr-0010-a-pike-vm-for-an-re2-subset--01a1f0902c3e.md)) ([ADR-0008](/decisions/adr-0008-a-flat-tree-and-a-compiled-query-blob-in-caller-memory--01a1ef929e5c.md), [ADR-0009](/decisions/adr-0009-field-overrides-and-the-node-rules-of-the-flat-tree--01a1f080b1ed.md)).
+**Version:** 6 (`ZTREE_ABI_VERSION`). Version 2 adds `ZTREE_LANG_CPP`. Version 3 adds `ztree_parse` and the language functions. Version 5 adds `ztree_query_compile` and status code 9 ([ADR-0011](/decisions/adr-0011-a-structural-port-of-the-reference-query-compiler--01a1f0a8133a.md)). Version 6 adds `ztree_query_exec`, the blob accessors, `status_field_id` and `ZTREE_NODE_LATER_FIELD` ([ADR-0012](/decisions/adr-0012-a-port-of-the-reference-query-cursor-over-the-flat-tree--01a1f111feba.md)). Version 4 adds `ztree_regex_match` and status codes 7 and 8 ([ADR-0010](/decisions/adr-0010-a-pike-vm-for-an-re2-subset--01a1f0902c3e.md)) ([ADR-0008](/decisions/adr-0008-a-flat-tree-and-a-compiled-query-blob-in-caller-memory--01a1ef929e5c.md), [ADR-0009](/decisions/adr-0009-field-overrides-and-the-node-rules-of-the-flat-tree--01a1f080b1ed.md)).
 **Header:** `include/ztree.h`
 **Library:** `zig-out/lib/libztree.a`, from `zig build lib --release`
 **Source:** [ISSUE-007](/issues/issue-007-c-abi-and-static-library-for-go-callers--01a1e96b8f9a.md), [ISSUE-011](/issues/issue-011-the-flat-tree-and-the-node-api--01a1ef92fe81.md)
@@ -80,6 +80,19 @@ The function compiles a query for a grammar and writes a blob with no pointers t
 | 7 | `ZTREE_QUERY_ERROR_PREDICATE` | An unknown predicate, wrong arguments or an invalid regex. |
 | 8 | `ZTREE_QUERY_ERROR_UNSUPPORTED` | A supertype, a directive or a regex outside the subset. |
 
+### Blob accessors
+`ztree_query_pattern_count(blob, blob_len)` and `ztree_query_capture_count(blob, blob_len)` give the counts of a blob, or 0 for a blob that fails its checks. `ztree_query_capture_name(blob, blob_len, index, length_out)` gives a pointer into the blob and the length of the name, or NULL. The name has no terminating zero.
+
+### `int32_t ztree_query_exec(blob, blob_len, nodes, node_count, overrides, override_count, src, len, start_node, matches_out, max_matches, match_count_out, captures_out, max_captures, capture_count_out)`
+The function runs a compiled query over the flat tree of `ztree_parse`, from the node `start_node` (0 for the root). It writes the matches in the order of `ts_query_cursor_next_match` ([ADR-0012](/decisions/adr-0012-a-port-of-the-reference-query-cursor-over-the-flat-tree--01a1f111feba.md)).
+- `ztree_match` has 8 bytes: `pattern_index` and `capture_count`. `ztree_capture` has 8 bytes: `node` (an index into `nodes`) and `index` (a capture id).
+- The captures of each match follow the captures of the match before it, in the order of the reference.
+- `src[0..len)` is the source of the tree. The text predicates read it. A match that fails a text predicate is not in the result.
+- Code 1 gives both counts. The caller then calls again with larger buffers.
+- Code 2 is a blob that fails its checks, a tree with a bad link or range, or a start node out of range.
+- Code 5 is a run past a hard limit: 65,536 states, 65,536 capture lists or 65,536 captures in one match.
+- The tree must come from the grammar of the query. The function cannot check this, so the Go binding checks it.
+
 ### `int32_t ztree_regex_match(pattern, pattern_len, text, text_len, matched_out, error_offset_out)`
 The function compiles a regex and writes 1 to `*matched_out` when it matches somewhere in the text, as `regexp.Match` of Go does. It uses the engine of the `#match?` predicate. [ADR-0010](/decisions/adr-0010-a-pike-vm-for-an-re2-subset--01a1f0902c3e.md) gives the syntax subset. A pattern error gives code 7 or 8 and the byte offset of the error in `*error_offset_out`. A program that is too large gives code 5.
 
@@ -94,8 +107,10 @@ The function compiles a regex and writes 1 to `*matched_out` when it matches som
 | `child_count`, `named_child_count` | `uint32_t` | `ts_node_child_count` and `ts_node_named_child_count`. |
 | `symbol` | `uint16_t` | `ts_node_symbol`: the public symbol, with the alias applied. |
 | `field_id` | `uint16_t` | `ts_tree_cursor_current_field_id`, or 0. |
-| `flags` | `uint16_t` | `ZTREE_NODE_NAMED`, `_EXTRA`, `_MISSING`, `_ERROR` and `_HAS_ERROR`. |
-| `reserved` | `uint16_t` | 0. |
+| `flags` | `uint16_t` | `ZTREE_NODE_NAMED`, `_EXTRA`, `_MISSING`, `_ERROR`, `_HAS_ERROR` and `_LATER_FIELD`. |
+| `status_field_id` | `uint16_t` | The field id of `ts_tree_cursor_current_status`. It differs from `field_id` only for an extra node in a hidden node with a field. |
+
+`ZTREE_NODE_LATER_FIELD` is `can_have_later_siblings_with_this_field` of `ts_tree_cursor_current_status`. The query cursor reads it and `status_field_id`.
 
 `ztree_field_override` has 12 bytes: `node`, `child` (or `ZTREE_NONE`), `field_id` and `reserved`. The result of `ts_node_child_by_field_id(node, field_id)` is the child of the override when one exists. Else it is the first child of the node whose `field_id` is the field, or no node. [ADR-0009](/decisions/adr-0009-field-overrides-and-the-node-rules-of-the-flat-tree--01a1f080b1ed.md) gives the cases.
 
@@ -138,6 +153,8 @@ A failed assertion or a safety check is a bug in ztree. The panic handler writes
 - `Parser.Parse(src)` makes one cgo call and returns a `*Tree`. It keeps a size hint for each buffer, so one goroutine at a time can use a `Parser`. Two goroutines can read one `Tree` at the same time. The tree keeps no reference to `src`.
 - `Node` and `TreeCursor` have the method names of go-tree-sitter. `Node` has `Kind`, `Child`, `NamedChild`, `ChildByFieldName`, `Parent`, the sibling methods, the positions, `Utf8Text`, `HasError`, `Equals`, `ToSexp` and `Walk`. `TreeCursor` has `GotoFirstChild`, `GotoNextSibling`, `GotoParent` and `FieldName`. Each method reads Go memory only.
 - `Parse` returns `(*Tree, error)`. go-tree-sitter returns a nil tree on failure.
+- `NewQuery(language, source)` compiles a query in one cgo call and returns `(*Query, *QueryError)`. `QueryError` has the kind, the row, the column, the offset and a message. `Query` has `PatternCount`, `CaptureNames`, `CaptureIndexForName` and `Language`. Two goroutines can use one `Query` at the same time.
+- `QueryCursor.Matches(query, node, text)` runs the query in one cgo call and returns `QueryMatches`. `Next` gives each `QueryMatch` (`PatternIndex` and `Captures`), and `Err` gives the error of the run. A query and a tree of different grammars give `ErrLanguageMismatch`. One goroutine at a time can use a `QueryCursor`.
 - The cgo flags read `../../zig-out/include` and `../../zig-out/lib`. Run `zig build lib --release` before `go build`.
 - The default C compiler works. With `CC="zig cc"` on a host with two GCC installations, add `-Wno-gcc-install-dir-libstdcxx`. Without it, cgo fails on a warning in `runtime/cgo`.
 
@@ -145,6 +162,8 @@ A failed assertion or a safety check is a bug in ztree. The panic handler writes
 - `src/capi.zig`: the status codes, the bad arguments, the language values, `ztree_parse` and the language functions.
 - `tests/capi_test.c`: a C caller of `libztree.a` through `include/ztree.h`. It checks the layouts, each grammar, the points, the buffer rules, the bad arguments, the nodes of a parse and the language functions. `zig build test` runs it.
 - `bindings/go`: each grammar, the buffer growth, the errors and calls from 8 goroutines. It compares the comments of the Go files in five GOROOT package trees with `go/parser`, and their functions with `go/ast`. It checks the node API, the cursor and the rules of ADR-0009. `zmake go` runs the tests with the race detector.
+- `zig build query-diff`: the matches of `ztree_query_exec` against `ts_query_cursor_next_match` on the upstream query files and the hand-written queries. Add directories with `-Dquery-dirs`.
+- `bindings/go/query_test.go`: the text predicates, the query errors, the API, calls from 8 goroutines and the `ast_query` rules of semscope.
 - `tests/query_test.zig`: `ztree_query_compile` against `ts_query_new` on the upstream query files, hand-written queries and their mutations ([ADR-0011](/decisions/adr-0011-a-structural-port-of-the-reference-query-compiler--01a1f0a8133a.md)).
 - `bindings/go/regex_test.go`: `ztree_regex_match` against the `regexp` package on a table, on 20,000 random patterns and in the fuzz target `FuzzRegex`.
 - `zig build differential`: each node of each tree against the reference `TSNode` API, and each field lookup against `ts_node_child_by_field_id`.

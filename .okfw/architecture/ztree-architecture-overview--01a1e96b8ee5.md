@@ -43,10 +43,11 @@ This note describes the modules of ztree and the data flow of one parse. [ADR-00
 | `src/query_analysis.zig` | The parse-table analysis of each pattern: structure errors and fallible steps. | 11 |
 | `src/query_predicates.zig` | The text predicates, checked as go-tree-sitter checks them. | 11 |
 | `src/query_blob.zig` | The compiled query blob with no pointers, and its read view. | 11 |
+| `src/query_exec.zig` | The query cursor: a port of `ts_query_cursor__advance` over the flat tree, and the text predicates ([ADR-0012](/decisions/adr-0012-a-port-of-the-reference-query-cursor-over-the-flat-tree--01a1f111feba.md)). | 12 |
 | `src/regex.zig` | The regex engine of `#match?`: an RE2 subset and a Pike VM ([ADR-0010](/decisions/adr-0010-a-pike-vm-for-an-re2-subset--01a1f0902c3e.md)). | 10 |
-| `src/flat.zig` | The flat tree: one record for each visible node, the field overrides, and the S-expression of the records. | 9 |
+| `src/flat.zig` | The flat tree: one record for each visible node with its cursor status, the field overrides, and the S-expression of the records. | 9, 12 |
 | `src/capi.zig` | The exported C ABI and the panic handler of `libztree.a`. See the [C ABI spec](/specs/ztree-c-abi--01a1ec92dc4f.md). | 7 |
-| `bindings/go/` | The Go binding (cgo) of the C ABI: `ExtractComments`, and `Parser`, `Tree`, `Node` and `TreeCursor` with the method names of go-tree-sitter. | 7, 9 |
+| `bindings/go/` | The Go binding (cgo) of the C ABI: `ExtractComments`, and `Parser`, `Tree`, `Node`, `TreeCursor`, `Query` and `QueryCursor` with the method names of go-tree-sitter. | 7, 9, 12 |
 
 ## Boundaries
 - `libztree.a` needs only libc. It holds no reference runtime, prints no stack trace and starts no thread.

@@ -36,7 +36,7 @@ type nodeRecord struct {
 	symbol          uint16
 	fieldID         uint16
 	flags           uint16
-	reserved        uint16
+	statusFieldID   uint16
 }
 
 // Each array length is negative, and the build fails, when the layouts differ.
@@ -45,8 +45,8 @@ var (
 	_ [unsafe.Sizeof(C.ztree_node{}) - unsafe.Sizeof(nodeRecord{})]struct{}
 	_ [unsafe.Offsetof(nodeRecord{}.symbol) - unsafe.Offsetof(C.ztree_node{}.symbol)]struct{}
 	_ [unsafe.Offsetof(C.ztree_node{}.symbol) - unsafe.Offsetof(nodeRecord{}.symbol)]struct{}
-	_ [unsafe.Offsetof(nodeRecord{}.reserved) - unsafe.Offsetof(C.ztree_node{}.reserved)]struct{}
-	_ [unsafe.Offsetof(C.ztree_node{}.reserved) - unsafe.Offsetof(nodeRecord{}.reserved)]struct{}
+	_ [unsafe.Offsetof(nodeRecord{}.statusFieldID) - unsafe.Offsetof(C.ztree_node{}.status_field_id)]struct{}
+	_ [unsafe.Offsetof(C.ztree_node{}.status_field_id) - unsafe.Offsetof(nodeRecord{}.statusFieldID)]struct{}
 )
 
 // overrideRecord has the layout of C.ztree_field_override.
@@ -276,6 +276,8 @@ type Tree struct {
 	// The field lookups that the first-child rule does not give, by
 	// overrideKey. The value is a node index, or none.
 	overrides map[uint64]uint32
+	// The same overrides as records, for ztree_query_exec.
+	rawOverrides []overrideRecord
 	// The first code point of each ERROR leaf, for ToSexp.
 	unexpected map[uint32]rune
 }
@@ -283,7 +285,7 @@ type Tree struct {
 func overrideKey(node uint32, field uint16) uint64 { return uint64(node)<<16 | uint64(field) }
 
 func newTree(l *Language, src []byte, nodes []nodeRecord, overrides []overrideRecord) *Tree {
-	t := &Tree{language: l, nodes: nodes, links: make([]nodeLinks, len(nodes))}
+	t := &Tree{language: l, nodes: nodes, links: make([]nodeLinks, len(nodes)), rawOverrides: overrides}
 	if len(overrides) > 0 {
 		t.overrides = make(map[uint64]uint32, len(overrides))
 		for _, o := range overrides {
