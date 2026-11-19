@@ -64,6 +64,10 @@ pub fn build(b: *std.Build) void {
     }
     const lib = b.addLibrary(.{ .linkage = .static, .name = "ztree", .root_module = capi_mod });
     lib.bundle_compiler_rt = true;
+    // The self-hosted x86_64 backend of a Debug build writes no .note.GNU-stack
+    // section, so GNU ld gives a cgo program an executable stack (ISSUE-019).
+    // LLVM writes the section in each mode.
+    lib.use_llvm = true;
     // A Debug build checks the C code of the grammars with UBSan. The runtime
     // of UBSan goes into the library, so cgo can link a Debug library too.
     lib.bundle_ubsan_rt = optimize == .debug;
@@ -85,6 +89,16 @@ pub fn build(b: *std.Build) void {
     const libhash_update = b.addUpdateSourceFiles();
     libhash_update.addCopyFileToSource(libhash_go, "bindings/go/libhash.go");
     lib_step.dependOn(&libhash_update.step);
+    // Each object of the library must mark the stack as not executable, or
+    // GNU ld gives the program an executable stack (ISSUE-019).
+    const stackcheck_exe = b.addExecutable(.{
+        .name = "stackcheck",
+        .root_module = b.createModule(.{ .root_source_file = b.path("tools/stackcheck.zig"), .target = b.graph.host }),
+    });
+    const stackcheck_run = b.addRunArtifact(stackcheck_exe);
+    stackcheck_run.addFileArg(lib.getEmittedBin());
+    lib_step.dependOn(&stackcheck_run.step);
+    test_step.dependOn(&stackcheck_run.step);
     b.getInstallStep().dependOn(lib_step);
     test_step.dependOn(&b.addRunArtifact(b.addTest(.{ .root_module = capi_mod })).step);
 

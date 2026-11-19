@@ -47,7 +47,7 @@ This note describes the modules of ztree and the data flow of one parse. [ADR-00
 | `src/regex.zig` | The regex engine of `#match?`: an RE2 subset and a Pike VM ([ADR-0010](/decisions/adr-0010-a-pike-vm-for-an-re2-subset--01a1f0902c3e.md)). | 10 |
 | `src/flat.zig` | The flat tree: one record for each visible node with its cursor status, the field overrides, and the S-expression of the records. | 9, 12 |
 | `src/capi.zig` | The exported C ABI and the panic handler of `libztree.a`. See the [C ABI spec](/specs/ztree-c-abi--01a1ec92dc4f.md). | 7 |
-| `bindings/go/` | The Go binding (cgo) of the C ABI: `ExtractComments`, and `Parser`, `Tree`, `Node`, `TreeCursor`, `Query` and `QueryCursor` with the method names of go-tree-sitter. `libhash.go`, from `tools/libhash.zig`, holds the SHA-256 of the library ([ADR-0016](/decisions/adr-0016-a-hash-file-of-libztree-a-in-the-go-binding--01a1f47f0da8.md)). | 7, 9, 12, 17 |
+| `bindings/go/` | The Go binding (cgo) of the C ABI: `ExtractComments`, and `Parser`, `Tree`, `Node`, `TreeCursor`, `Query` and `QueryCursor` with the method names of go-tree-sitter. `libhash.go`, from `tools/libhash.zig`, holds the SHA-256 of the library ([ADR-0016](/decisions/adr-0016-a-hash-file-of-libztree-a-in-the-go-binding--01a1f47f0da8.md)). `tools/stackcheck.zig` checks the stack note of each object ([ADR-0017](/decisions/adr-0017-llvm-builds-libztree-a-in-each-mode--01a1f4eaab0a.md)). | 7, 9, 12, 17, 18 |
 
 ## Boundaries
 - `libztree.a` needs only libc. It holds no reference runtime, prints no stack trace and starts no thread.

@@ -20,4 +20,5 @@
 * [ADR-0014: No repeat depth in a subtree](adr-0014-no-repeat-depth-in-a-subtree--01a1f309a44d.md) - ztree removes repeat_depth from Subtree, because only the balance step of the reference reads it and its u16 add panicked on tables of more than 65,535 items.
 * [ADR-0015: Three rare Zig forms in the patched grammar](adr-0015-three-rare-zig-forms-in-the-patched-grammar--01a1f3e617cd.md) - The Zig grammar patch accepts an error set as a container field, a slice of an if type and an identifier as the asm clobbers.
 * [ADR-0016: A hash file of libztree.a in the Go binding](adr-0016-a-hash-file-of-libztree-a-in-the-go-binding--01a1f47f0da8.md) - zig build lib writes the SHA-256 of libztree.a into bindings/go/libhash.go, so the Go build cache links a new library, and a Debug library holds the UBSan runtime.
+* [ADR-0017: LLVM builds libztree.a in each mode](adr-0017-llvm-builds-libztree-a-in-each-mode--01a1f4eaab0a.md) - libztree.a uses the LLVM backend in each mode, so each object has a .note.GNU-stack section, and a build tool checks the section.
 

@@ -13,6 +13,7 @@ ztree is a batch Tree-sitter runtime in Zig. It follows the NASA Power of 10 rul
 - `src/capi.zig` is the root of `libztree.a`. `include/ztree.h` declares its C ABI ([spec](.okfw/specs/ztree-c-abi--01a1ec92dc4f.md)).
 - `bindings/go/` holds the Go binding: a separate Go module that links `zig-out/lib/libztree.a`.
 - `tools/libhash.zig` writes `bindings/go/libhash.go`, the SHA-256 of `libztree.a`, in `zig build lib`. Do not edit or commit that Go file.
+- `tools/stackcheck.zig` checks that each object of `libztree.a` has a `.note.GNU-stack` section that is not executable.
 - `src/` holds the runtime modules. The [architecture overview](.okfw/architecture/ztree-architecture-overview--01a1e96b8ee5.md) lists them.
 - `third_party/` holds vendored C source. Do not edit it.
 - `scripts/` holds the lint scripts from zmake: `nasa-lint.py` (Power of 10) and `ste-check.py` (ASD-STE100). Do not change them.

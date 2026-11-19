@@ -41,7 +41,7 @@ Each step built the engine tests of lexis with `go test -c`.
 - After a new library, the next Go build of the binding, of lexis or of semscope links the new library. `go clean -cache` is not necessary.
 - The binding needs `zig build lib` before `go vet`, because `libhash.go` defines `libHash`. The binding already needed the library to link.
 - `LibraryHash` is a public function. A caller can log the hash of the linked library.
-- A Go link with a Debug library gives one linker warning: `capi.o` has no `.note.GNU-stack` section. The ReleaseSafe library gives no warning.
+- A Go link with a Debug library gave one linker warning: `capi.o` has no `.note.GNU-stack` section. The ReleaseSafe library gives no warning. [ADR-0017](/decisions/adr-0017-llvm-builds-libztree-a-in-each-mode--01a1f4eaab0a.md) fixes the warning ([ISSUE-019](/issues/issue-019-an-executable-stack-with-a-debug-libztree-a--01a1f4eaab02.md)).
 
 ## Alternatives considered
 - **Commit `libhash.go`.** Rejected: the hash depends on the host and the toolchain. A build on another host then changes a committed file.

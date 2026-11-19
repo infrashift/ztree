@@ -9,7 +9,7 @@ Loop: implement one task, run `zmake check`, and repeat until green. Then update
 - Architecture: [ztree architecture overview](.okfw/architecture/ztree-architecture-overview--01a1e96b8ee5.md)
 - Decisions, part 1: [ADR-0001 wiki](.okfw/decisions/adr-0001-adopt-an-okf-wiki-okfw-for-project-knowledge--01a1e96b8ef6.md) · [ADR-0002 toolchain](.okfw/decisions/adr-0002-zig-0-17-1-the-standard-library-and-vendored-c-grammars--01a1e96b8f06.md) · [ADR-0003 Power of 10](.okfw/decisions/adr-0003-adapt-the-nasa-power-of-10-rules-to-ztree--01a1e96b8f17.md) · [ADR-0004 scope](.okfw/decisions/adr-0004-a-batch-tree-sitter-runtime-for-abi-14-and-15--01a1e96b8f27.md)
 - Decisions, part 2: [ADR-0005 arena](.okfw/decisions/adr-0005-one-arena-per-parse-no-reference-counts-and-no-balance-step--01a1ebbb7488.md) · [ADR-0006 Zig grammar](.okfw/decisions/adr-0006-a-patched-zig-grammar-for-zig-0-17-and-empty-containers--01a1ec8a934e.md) · [ADR-0007 semscope scope](.okfw/decisions/adr-0007-ztree-is-the-tree-sitter-service-of-lexis-and-semscope--01a1ef926073.md) · [ADR-0008 flat tree ABI](.okfw/decisions/adr-0008-a-flat-tree-and-a-compiled-query-blob-in-caller-memory--01a1ef929e5c.md) · [ADR-0009 field overrides](.okfw/decisions/adr-0009-field-overrides-and-the-node-rules-of-the-flat-tree--01a1f080b1ed.md) · [ADR-0011 query compiler](.okfw/decisions/adr-0011-a-structural-port-of-the-reference-query-compiler--01a1f0a8133a.md) · [ADR-0010 regex](.okfw/decisions/adr-0010-a-pike-vm-for-an-re2-subset--01a1f0902c3e.md)
-- Decisions, part 3: [ADR-0012 query cursor](.okfw/decisions/adr-0012-a-port-of-the-reference-query-cursor-over-the-flat-tree--01a1f111feba.md) · [ADR-0013 stack heads](.okfw/decisions/adr-0013-a-bound-of-256-glr-stack-heads--01a1f2f0124a.md) · [ADR-0014 repeat depth](.okfw/decisions/adr-0014-no-repeat-depth-in-a-subtree--01a1f309a44d.md) · [ADR-0015 Zig forms](.okfw/decisions/adr-0015-three-rare-zig-forms-in-the-patched-grammar--01a1f3e617cd.md) · [ADR-0016 Go cache](.okfw/decisions/adr-0016-a-hash-file-of-libztree-a-in-the-go-binding--01a1f47f0da8.md)
+- Decisions, part 3: [ADR-0012 query cursor](.okfw/decisions/adr-0012-a-port-of-the-reference-query-cursor-over-the-flat-tree--01a1f111feba.md) · [ADR-0013 stack heads](.okfw/decisions/adr-0013-a-bound-of-256-glr-stack-heads--01a1f2f0124a.md) · [ADR-0014 repeat depth](.okfw/decisions/adr-0014-no-repeat-depth-in-a-subtree--01a1f309a44d.md) · [ADR-0015 Zig forms](.okfw/decisions/adr-0015-three-rare-zig-forms-in-the-patched-grammar--01a1f3e617cd.md) · [ADR-0016 Go cache](.okfw/decisions/adr-0016-a-hash-file-of-libztree-a-in-the-go-binding--01a1f47f0da8.md) · [ADR-0017 stack note](.okfw/decisions/adr-0017-llvm-builds-libztree-a-in-each-mode--01a1f4eaab0a.md)
 - Rules: ADR-0003 for the code. ASD-STE100 for all documentation.
 
 ## Phase 0 — Bootstrap
@@ -125,3 +125,9 @@ Tracking: [ISSUE-018](.okfw/issues/issue-018-the-go-build-cache-does-not-see-a-n
 - [x] Write the SHA-256 of `libztree.a` into `bindings/go/libhash.go` in `zig build lib`
 - [x] Add a binding test that compares the hash with the library
 - [x] Prove that a new library makes Go link again
+
+## Phase 18 — An executable stack with a Debug libztree.a
+Tracking: [ISSUE-019](.okfw/issues/issue-019-an-executable-stack-with-a-debug-libztree-a--01a1f4eaab02.md)
+- [x] Build `libztree.a` with LLVM in each mode, so each object has a `.note.GNU-stack` section
+- [x] Check each object of the library in `zig build lib` and `zig build test`
+- [x] Add a binding test that the stack of a Go program is not executable
