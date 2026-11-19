@@ -45,7 +45,7 @@ The trees of the other 580 files do not change. `node-types.json` keeps the same
 
 ## Consequences
 - ztree reads the Zig 0.17.1 standard library and zmake without syntax errors.
-- The grammar of ztree differs from the grammar of semscope by four changes now. semscope can take the same patch.
+- semscope takes the same `grammar.js` (semscope ADR-0012, 2026-11-19). The two generated parsers are the same, byte for byte.
 - `tests/abi_test.zig` holds the new state counts and lex modes of the Zig parser.
 - `tests/parser_test.zig` holds one input for each form. Each input gives errors with the grammar of ADR-0006.
 

@@ -37,7 +37,7 @@ The differential step found syntax errors in 71 of 579 files of the Zig 0.17.1 s
 - Zig code that uses `async`, `await` or `usingnamespace` as keywords gives parse errors. ztree reads current Zig.
 - The Zig grammar stays at ABI 14. It is the only ABI 14 grammar, so the ABI 14 path keeps its tests.
 - The new `tree_sitter/parser.h` of the generator declares the ABI 15 struct. The ABI 14 layout probe therefore reads its own copy of the v1.1.2 header in `tests/abi14/parser.h`.
-- The grammar of ztree differs from the grammar of semscope by the empty-container change. Without this change, semscope sees a false `container_field` in each empty container. semscope can take the same patch.
+- The grammar of ztree differs from the grammar of semscope by the empty-container change. Without this change, semscope sees a false `container_field` in each empty container. semscope can take the same patch. semscope ADR-0012 takes it, with the forms of ADR-0015.
 - [ISSUE-009](/issues/issue-009-rare-zig-forms-that-the-patched-grammar-cannot-read--01a1ec8ab913.md) records three rare forms that the grammar cannot read. [ADR-0015](/decisions/adr-0015-three-rare-zig-forms-in-the-patched-grammar--01a1f3e617cd.md) adds them to the patch.
 
 ## Alternatives considered
