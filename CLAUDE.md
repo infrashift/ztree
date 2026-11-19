@@ -1,7 +1,7 @@
 # CLAUDE.md — ztree
 
 ## Purpose (WHY)
-ztree is a batch Tree-sitter runtime in Zig. It follows the NASA Power of 10 rules. It loads the generated grammars of Go, Zig, Python, C, C++ and Rust. It is the Tree-sitter service of two linters through a C ABI: lexis reads comment spans, and semscope reads trees and runs queries. [ADR-0004](.okfw/decisions/adr-0004-a-batch-tree-sitter-runtime-for-abi-14-and-15--01a1e96b8f27.md) and [ADR-0007](.okfw/decisions/adr-0007-ztree-is-the-tree-sitter-service-of-lexis-and-semscope--01a1ef926073.md) define the scope.
+ztree is a batch Tree-sitter runtime in Zig. It follows the NASA Power of 10 rules. It loads the generated grammars of Go, Zig, Python, C, C++ and Rust. It is the Tree-sitter service of two linters through a C ABI: lexiscope reads comment spans, and semscope reads trees and runs queries. [ADR-0004](.okfw/decisions/adr-0004-a-batch-tree-sitter-runtime-for-abi-14-and-15--01a1e96b8f27.md) and [ADR-0007](.okfw/decisions/adr-0007-ztree-is-the-tree-sitter-service-of-lexis-and-semscope--01a1ef926073.md) define the scope.
 
 ## Tech Stack (WHAT)
 - **Language:** Zig 0.17.1, pinned in `build.zig.zon` as `minimum_zig_version`.
@@ -17,7 +17,7 @@ ztree is a batch Tree-sitter runtime in Zig. It follows the NASA Power of 10 rul
 - `src/` holds the runtime modules. The [architecture overview](.okfw/architecture/ztree-architecture-overview--01a1e96b8ee5.md) lists them.
 - `third_party/` holds vendored C source. Do not edit it.
 - `scripts/` holds the lint scripts from zmake: `nasa-lint.py` (Power of 10) and `ste-check.py` (ASD-STE100). Do not change them.
-- `vocabulary.cue` holds the technical terms of this repository for the lexis check ([ADR-0018](.okfw/decisions/adr-0018-lexis-checks-the-documentation-with-a-repository-vocabulary--01a1f525ba3d.md)). Add a term only when it names a concept of the project, a tool or a standard. Reword other text.
+- `vocabulary.cue` holds the technical terms of this repository for the lexiscope check ([ADR-0018](.okfw/decisions/adr-0018-lexis-checks-the-documentation-with-a-repository-vocabulary--01a1f525ba3d.md)). Add a term only when it names a concept of the project, a tool or a standard. Reword other text.
 
 ## Verification & Workflow Commands (HOW)
 `ZMakefile` (zmake, with `@name:` tasks) and `Makefile` (GNU Make) have the same targets. Change both files together.
@@ -32,7 +32,7 @@ Run these targets with `zmake`:
 - `zmake go` runs `zmake lib`, then checks the Go binding with gofmt, `go vet` and `go test -race`.
 - `zmake wiki` runs `okfw validate --all` and `okfw validate --okf`.
 - `zmake docs-style` runs `scripts/ste-check.py`.
-- `zmake docs-lexis` scans `CLAUDE.md`, `PLAN.md` and `.okfw` with lexis and `vocabulary.cue`. Each finding fails it. When lexis is not on the PATH, it passes with a message.
+- `zmake docs-lexiscope` scans `CLAUDE.md`, `PLAN.md` and `.okfw` with lexiscope and `vocabulary.cue`. Each finding fails it. When lexiscope is not on the PATH, it passes with a message. `lexis` is a short alias of `lexiscope`.
 - `zmake check` runs all of the gates above. It is the default goal.
 
 ## Mandatory Execution Rules
@@ -42,7 +42,7 @@ Run these targets with `zmake`:
 4. **Power of 10.** Follow the rules as [ADR-0003](.okfw/decisions/adr-0003-adapt-the-nasa-power-of-10-rules-to-ztree--01a1e96b8f17.md) adapts them. Only `src/abi.zig` declares function pointers.
 5. **Minimal abstractions.** Add no unrequested interfaces, vtables or factories.
 6. **Wiki stays in sync.** Each `PLAN.md` phase has a mirror issue in `.okfw/issues/`. Record each decision as an ADR when you make it.
-7. **Documentation follows ASD-STE100.** Use active voice, simple present tense and short sentences. Read the [Wiki conventions](.okfw/wiki-conventions--01a1e96b8eb9.md). Run `zmake docs-style` and `zmake docs-lexis`.
+7. **Documentation follows ASD-STE100.** Use active voice, simple present tense and short sentences. Read the [Wiki conventions](.okfw/wiki-conventions--01a1e96b8eb9.md). Run `zmake docs-style` and `zmake docs-lexiscope`.
 8. **Git.** Make one commit per phase. Do not push.
 
 <!-- BEGIN okfw -->

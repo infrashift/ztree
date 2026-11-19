@@ -43,3 +43,6 @@ lexis links `libztree.a` through cgo, and its build runs `zig build lib` in this
 ## Related
 - [Wiki conventions](/wiki-conventions--01a1e96b8eb9.md)
 - [ADR-0007](/decisions/adr-0007-ztree-is-the-tree-sitter-service-of-lexis-and-semscope--01a1ef926073.md): ztree is the Tree-sitter service of lexis and semscope.
+
+## Later change
+2026-11-19: lexis is now lexiscope (lexiscope ADR-0012). `lexis` stays as a short alias. The task is `docs-lexiscope`, and the variable is `LEXISCOPE`. [ISSUE-021](/issues/issue-021-lexis-is-now-lexiscope--01a1f548c7d3.md) records the change.

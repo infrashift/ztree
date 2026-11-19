@@ -1,8 +1,8 @@
 // The vocabulary of the ztree repository: technical terms of this project
-// that the extended rules STE-100-06 and STE-100-07 of lexis do not report.
-// The docs-lexis task loads this file over the built-in ste-100 ruleset:
+// that the extended rules STE-100-06 and STE-100-07 of lexiscope do not report.
+// The docs-lexiscope task loads this file over the built-in ste-100 ruleset:
 //
-//	lexis scan --ruleset ste-100 --ruleset vocabulary.cue ...
+//	lexiscope scan --ruleset ste-100 --ruleset vocabulary.cue ...
 //
 // Add a term only when it names a concept of the project, a tool or a
 // standard. Reword other text.
@@ -20,7 +20,7 @@ vocabulary: {
 
 	// Tree-sitter, the parser and the gates.
 	conformance: true // the conformance step: the corpus tests of each grammar
-	extraction:  true // comment extraction for lexis
+	extraction:  true // comment extraction for lexiscope
 	execution:   true // query execution, Phase 12 and ISSUE-014
 	production:  true // a grammar production and its production id
 	precedence:  true // the dynamic precedence of a parse

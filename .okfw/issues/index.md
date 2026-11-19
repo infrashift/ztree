@@ -24,4 +24,5 @@
 * [ISSUE-018: The Go build cache does not see a new libztree.a](issue-018-the-go-build-cache-does-not-see-a-new-libztree-a--01a1f47872d7.md) - cgo links libztree.a through -l, so the Go build cache can link an old library after a new zig build lib.
 * [ISSUE-019: An executable stack with a Debug libztree.a](issue-019-an-executable-stack-with-a-debug-libztree-a--01a1f4eaab02.md) - The self-hosted backend of a Debug build writes capi.o without a .note.GNU-stack section, so GNU ld gives a cgo program an executable stack.
 * [ISSUE-020: lexis checks the documentation of ztree](issue-020-lexis-checks-the-documentation-of-ztree--01a1f524fb01.md) - A scan of the ztree documentation with the ste-100 ruleset of lexis gives 122 warnings, and no gate runs lexis.
+* [ISSUE-021: lexis is now lexiscope](issue-021-lexis-is-now-lexiscope--01a1f548c7d3.md) - The documentation linter lexis has the new name lexiscope, so the docs-lexis task and the current documents of ztree use an old name.
 

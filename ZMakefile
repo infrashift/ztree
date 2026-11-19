@@ -7,16 +7,16 @@ PYTHON ?= python3
 GO ?= go
 GOFMT ?= $(shell $(GO) env GOROOT)/bin/gofmt
 ZIG_SOURCES := build.zig build.zig.zon src tests tools
-# lexis checks the documentation with vocabulary.cue when it is on the PATH (ADR-0018).
-LEXIS ?= lexis
-# The docs-lexis task reads these files with the vocabulary of this repository.
+# lexiscope checks the documentation with vocabulary.cue when it is on the PATH (ADR-0018).
+LEXISCOPE ?= lexiscope
+# The docs-lexiscope task reads these files with the vocabulary of this repository.
 # Each finding fails it.
-DOCS_LEXIS_PATHS := CLAUDE.md PLAN.md .okfw
-DOCS_LEXIS_FLAGS := --ruleset ste-100 --ruleset vocabulary.cue --fail-on note \
+DOCS_LEXISCOPE_PATHS := CLAUDE.md PLAN.md .okfw
+DOCS_LEXISCOPE_FLAGS := --ruleset ste-100 --ruleset vocabulary.cue --fail-on note \
 	--exclude .okfw/daily --exclude .okfw/ephemeral --exclude index.md --exclude log.md
 
 ## check: run every gate (the default goal)
-@check: lint test conformance differential query-diff go wiki docs-style docs-lexis
+@check: lint test conformance differential query-diff go wiki docs-style docs-lexiscope
 
 ## build: compile the library into zig-out
 @build:
@@ -66,6 +66,6 @@ DOCS_LEXIS_FLAGS := --ruleset ste-100 --ruleset vocabulary.cue --fail-on note \
 @docs-style:
     $(PYTHON) -I scripts/ste-check.py
 
-## docs-lexis: check the documentation with lexis and vocabulary.cue, when lexis is on the PATH (each finding fails)
-@docs-lexis:
-    if command -v $(LEXIS) >/dev/null 2>&1; then $(LEXIS) scan $(DOCS_LEXIS_FLAGS) $(DOCS_LEXIS_PATHS); else echo "docs-lexis: $(LEXIS) not found, so scripts/ste-check.py checks the documentation alone"; fi
+## docs-lexiscope: check the documentation with lexiscope and vocabulary.cue, when lexiscope is on the PATH (each finding fails)
+@docs-lexiscope:
+    if command -v $(LEXISCOPE) >/dev/null 2>&1; then $(LEXISCOPE) scan $(DOCS_LEXISCOPE_FLAGS) $(DOCS_LEXISCOPE_PATHS); else echo "docs-lexiscope: $(LEXISCOPE) not found, so scripts/ste-check.py checks the documentation alone"; fi

@@ -1,15 +1,15 @@
 # PLAN.md — ztree
 
-ztree is a batch Tree-sitter runtime in Zig 0.17.1 under the NASA Power of 10 rules. lexis uses it to extract the comments of source files. semscope uses its trees and queries in place of go-tree-sitter (ADR-0007).
+ztree is a batch Tree-sitter runtime in Zig 0.17.1 under the NASA Power of 10 rules. lexiscope uses it to extract the comments of source files. semscope uses its trees and queries in place of go-tree-sitter (ADR-0007).
 
-Work on one phase at a time (`CLAUDE.md` rule 1). Each phase from 1 to 19 has a mirror issue in the OKF wiki (`.okfw/issues/`). When you finish a phase, tick this checklist and the acceptance criteria of the issue.
+Work on one phase at a time (`CLAUDE.md` rule 1). Each phase from 1 to 20 has a mirror issue in the OKF wiki (`.okfw/issues/`). When you finish a phase, tick this checklist and the acceptance criteria of the issue.
 
 Loop: do one task, run `zmake check`, and repeat until green. Then update the wiki and commit once per phase.
 
 - Architecture: [ztree architecture overview](.okfw/architecture/ztree-architecture-overview--01a1e96b8ee5.md)
 - Decisions, part 1: [ADR-0001 wiki](.okfw/decisions/adr-0001-adopt-an-okf-wiki-okfw-for-project-knowledge--01a1e96b8ef6.md) · [ADR-0002 toolchain](.okfw/decisions/adr-0002-zig-0-17-1-the-standard-library-and-vendored-c-grammars--01a1e96b8f06.md) · [ADR-0003 Power of 10](.okfw/decisions/adr-0003-adapt-the-nasa-power-of-10-rules-to-ztree--01a1e96b8f17.md) · [ADR-0004 scope](.okfw/decisions/adr-0004-a-batch-tree-sitter-runtime-for-abi-14-and-15--01a1e96b8f27.md)
 - Decisions, part 2: [ADR-0005 arena](.okfw/decisions/adr-0005-one-arena-per-parse-no-reference-counts-and-no-balance-step--01a1ebbb7488.md) · [ADR-0006 Zig grammar](.okfw/decisions/adr-0006-a-patched-zig-grammar-for-zig-0-17-and-empty-containers--01a1ec8a934e.md) · [ADR-0007 semscope scope](.okfw/decisions/adr-0007-ztree-is-the-tree-sitter-service-of-lexis-and-semscope--01a1ef926073.md) · [ADR-0008 flat tree ABI](.okfw/decisions/adr-0008-a-flat-tree-and-a-compiled-query-blob-in-caller-memory--01a1ef929e5c.md) · [ADR-0009 field overrides](.okfw/decisions/adr-0009-field-overrides-and-the-node-rules-of-the-flat-tree--01a1f080b1ed.md) · [ADR-0011 query compiler](.okfw/decisions/adr-0011-a-structural-port-of-the-reference-query-compiler--01a1f0a8133a.md) · [ADR-0010 regex](.okfw/decisions/adr-0010-a-pike-vm-for-an-re2-subset--01a1f0902c3e.md)
-- Decisions, part 3: [ADR-0012 query cursor](.okfw/decisions/adr-0012-a-port-of-the-reference-query-cursor-over-the-flat-tree--01a1f111feba.md) · [ADR-0013 stack heads](.okfw/decisions/adr-0013-a-bound-of-256-glr-stack-heads--01a1f2f0124a.md) · [ADR-0014 repeat depth](.okfw/decisions/adr-0014-no-repeat-depth-in-a-subtree--01a1f309a44d.md) · [ADR-0015 Zig forms](.okfw/decisions/adr-0015-three-rare-zig-forms-in-the-patched-grammar--01a1f3e617cd.md) · [ADR-0016 Go cache](.okfw/decisions/adr-0016-a-hash-file-of-libztree-a-in-the-go-binding--01a1f47f0da8.md) · [ADR-0017 stack note](.okfw/decisions/adr-0017-llvm-builds-libztree-a-in-each-mode--01a1f4eaab0a.md) · [ADR-0018 lexis](.okfw/decisions/adr-0018-lexis-checks-the-documentation-with-a-repository-vocabulary--01a1f525ba3d.md)
+- Decisions, part 3: [ADR-0012 query cursor](.okfw/decisions/adr-0012-a-port-of-the-reference-query-cursor-over-the-flat-tree--01a1f111feba.md) · [ADR-0013 stack heads](.okfw/decisions/adr-0013-a-bound-of-256-glr-stack-heads--01a1f2f0124a.md) · [ADR-0014 repeat depth](.okfw/decisions/adr-0014-no-repeat-depth-in-a-subtree--01a1f309a44d.md) · [ADR-0015 Zig forms](.okfw/decisions/adr-0015-three-rare-zig-forms-in-the-patched-grammar--01a1f3e617cd.md) · [ADR-0016 Go cache](.okfw/decisions/adr-0016-a-hash-file-of-libztree-a-in-the-go-binding--01a1f47f0da8.md) · [ADR-0017 stack note](.okfw/decisions/adr-0017-llvm-builds-libztree-a-in-each-mode--01a1f4eaab0a.md) · [ADR-0018 vocabulary](.okfw/decisions/adr-0018-lexis-checks-the-documentation-with-a-repository-vocabulary--01a1f525ba3d.md)
 - Rules: ADR-0003 for the code. ASD-STE100 for all documentation.
 
 ## Phase 0 — Bootstrap
@@ -140,5 +140,17 @@ Issue: [ISSUE-020](.okfw/issues/issue-020-lexis-checks-the-documentation-of-ztre
 
 Acceptance criteria:
 - [x] The lexis scan of `CLAUDE.md`, `PLAN.md` and `.okfw` gives 0 errors, 0 warnings and 0 notes
+- [x] `zmake -n check` and `make -n check` print the same commands
+- [x] `zmake check` and `make check` pass
+
+## Phase 20 — lexis is now lexiscope
+Issue: [ISSUE-021](.okfw/issues/issue-021-lexis-is-now-lexiscope--01a1f548c7d3.md)
+- [x] Rename the task `docs-lexis` to `docs-lexiscope` and the variable `LEXIS` to `LEXISCOPE` in `ZMakefile` and `Makefile`
+- [x] Name the tool lexiscope in `CLAUDE.md`, `vocabulary.cue` and the current wiki concepts
+- [x] Keep the old name in the records, and add a dated note to ADR-0018
+
+Acceptance criteria:
+- [x] The lexiscope scan of `CLAUDE.md`, `PLAN.md` and `.okfw` gives 0 errors, 0 warnings and 0 notes
+- [x] With `LEXISCOPE` set to a command that does not exist, `zmake docs-lexiscope` prints a message and passes
 - [x] `zmake -n check` and `make -n check` print the same commands
 - [x] `zmake check` and `make check` pass

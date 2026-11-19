@@ -65,7 +65,7 @@ All documentation follows ASD-STE100 Simplified Technical English. This includes
   - *phase*: one unit of work in `PLAN.md`.
 - Do not use the words `should`, `will`, `would`, `please`, `simply`, `just`, `very`, `really` or `easily`. Do not use marketing language.
 - Run `zmake docs-style`. The check (`scripts/ste-check.py`) reports banned words and long sentences as errors. It reports possible passive voice as warnings. Fix the warnings too.
-- Run `zmake docs-lexis`. lexis also reports noun forms of verbs, `-ing` forms and marketing words. Each finding fails the check. Put a technical term in `vocabulary.cue` only when it names a concept of the project, a tool or a standard. Reword other text ([ADR-0018](/decisions/adr-0018-lexis-checks-the-documentation-with-a-repository-vocabulary--01a1f525ba3d.md)).
+- Run `zmake docs-lexiscope`. lexiscope also reports noun forms of verbs, `-ing` forms and marketing words. Each finding fails the check. Put a technical term in `vocabulary.cue` only when it names a concept of the project, a tool or a standard. Reword other text ([ADR-0018](/decisions/adr-0018-lexis-checks-the-documentation-with-a-repository-vocabulary--01a1f525ba3d.md)). `lexis` is the old name of lexiscope and a short alias of it. Records before Phase 20 use the old name.
 
 ## Housekeeping
 - Use `okfw move` and `okfw delete`. Do not use `mv` or `rm`. The okfw commands repair links and update the `index.md` listings.

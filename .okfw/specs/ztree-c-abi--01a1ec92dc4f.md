@@ -19,7 +19,7 @@ description: "The C ABI of libztree.a: ztree_extract_comments, ztree_parse, the 
 **Source:** [ISSUE-007](/issues/issue-007-c-abi-and-static-library-for-go-callers--01a1e96b8f9a.md), [ISSUE-011](/issues/issue-011-the-flat-tree-and-the-node-api--01a1ef92fe81.md)
 
 ## Purpose
-The C ABI gives the comment spans and the syntax tree of a source file to a C or Go caller. lexis uses the comment spans through cgo. semscope uses the syntax tree.
+The C ABI gives the comment spans and the syntax tree of a source file to a C or Go caller. lexiscope uses the comment spans through cgo. semscope uses the syntax tree.
 
 ## Build
 - `zig build lib --release` writes `zig-out/lib/libztree.a` and `zig-out/include/ztree.h`. The library uses ReleaseSafe, so the assertions stay active ([ADR-0003](/decisions/adr-0003-adapt-the-nasa-power-of-10-rules-to-ztree--01a1e96b8f17.md)).
