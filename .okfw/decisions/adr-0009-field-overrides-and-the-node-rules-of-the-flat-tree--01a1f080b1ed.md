@@ -41,3 +41,6 @@ description: "ztree_parse writes field overrides for the rare field lookups that
 - **A field map in the binding.** The binding then needs the production id and the hidden nodes of each node. Rejected: the flat tree then holds the whole subtree arena.
 - **The lookahead character in each record.** A code point needs 21 bits, and only `ToSexp` reads it. Rejected: it adds 4 bytes to each of millions of records.
 - **Hidden MISSING nodes as records.** Rejected: the records then differ from the cursor, and each node method of the reference then needs a special case.
+
+## Later change
+2026-11-21: A third difference. The C# differential run found ERROR nodes with hidden children only, for example the ERROR node of `T h` in `int x)\n[A] T h,\n`. A cursor does not enter such a node, so the flat tree shows it as a leaf, and `ToSexp` writes `(UNEXPECTED 'T')`. `ts_node_string` writes `(ERROR)`. `tree.writeVisibleSexp` now treats an ERROR node with no visible child as a leaf ([ISSUE-023](/issues/issue-023-the-c-sharp-grammar--01a1fec3b918.md)). The records and the node API do not change.

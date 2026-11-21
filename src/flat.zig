@@ -702,6 +702,21 @@ test "flatten reports errors and missing nodes" {
     try std.testing.expect((try testFlatten(arena_state.allocator(), grammars.language(.rust), "fn f() { let x = ; }\n")).len > 1);
 }
 
+test "an ERROR node with only hidden children is a leaf of the flat tree" {
+    // In this C# input, the ERROR node over `T h` has hidden children only.
+    // The flat tree shows it as a leaf, and so does `tree.writeVisibleSexp`.
+    var arena_state = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena_state.deinit();
+    const grammars = @import("grammars.zig");
+    const src = "int x)\n[A] T h,\n";
+    const nodes = try testFlatten(arena_state.allocator(), grammars.language(.csharp), src);
+    var leaves: usize = 0;
+    for (nodes) |n| {
+        if (n.flags & flag_error != 0 and n.child_count == 0 and std.mem.eql(u8, "T h", src[n.start_byte..n.end_byte])) leaves += 1;
+    }
+    try std.testing.expectEqual(@as(usize, 1), leaves);
+}
+
 test "flatten counts the nodes when the buffer is too small" {
     var arena_state = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena_state.deinit();

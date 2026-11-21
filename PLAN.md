@@ -2,7 +2,7 @@
 
 ztree is a batch Tree-sitter runtime in Zig 0.17.1 under the NASA Power of 10 rules. lexiscope uses it to extract the comments of source files. semscope uses its trees and queries in place of go-tree-sitter (ADR-0007).
 
-Work on one phase at a time (`CLAUDE.md` rule 1). Each phase from 1 to 21 has a mirror issue in the OKF wiki (`.okfw/issues/`). When you finish a phase, tick this checklist and the acceptance criteria of the issue.
+Work on one phase at a time (`CLAUDE.md` rule 1). Each phase from 1 to 22 has a mirror issue in the OKF wiki (`.okfw/issues/`). When you finish a phase, tick this checklist and the acceptance criteria of the issue.
 
 Loop: do one task, run `zmake check`, and repeat until green. Then update the wiki and commit once per phase.
 
@@ -164,4 +164,16 @@ Issue: [ISSUE-022](.okfw/issues/issue-022-query-diff-skips-the-queries-with-dire
 Acceptance criteria:
 - [x] query-diff compares the patterns of all 12 files of `tests/queries/`
 - [x] Tests show the error codes of `#set!`, `#strip!`, `#set-adjacent!` and an unknown predicate
+- [x] `zmake check` and `make check` pass
+
+## Phase 22 — The C# grammar
+Issue: [ISSUE-023](.okfw/issues/issue-023-the-c-sharp-grammar--01a1fec3b918.md)
+- [x] Vendor tree-sitter-c-sharp v0.24.0 into `third_party/grammars/c-sharp/` and compile `parser.c` and `scanner.c`
+- [x] Add `csharp` to `grammars.Lang`, the comment kinds, the C ABI (version 7) and the Go binding
+- [x] Add the C# corpus to `conformance` and C# inputs to the lexer, parser and query tests
+- [x] Run the differential step on real C# code, and record the decision in ADR-0019
+
+Acceptance criteria:
+- [x] The conformance step passes each example of the C# corpus
+- [x] A differential run on real C# code agrees with the reference runtime
 - [x] `zmake check` and `make check` pass

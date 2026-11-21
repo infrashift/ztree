@@ -15,8 +15,8 @@ import (
 )
 
 func TestABIVersion(t *testing.T) {
-	if got := ABIVersion(); got != 6 {
-		t.Fatalf("ABIVersion() = %d, want 6", got)
+	if got := ABIVersion(); got != 7 {
+		t.Fatalf("ABIVersion() = %d, want 7", got)
 	}
 }
 
@@ -32,6 +32,7 @@ func TestEachGrammar(t *testing.T) {
 		{LangC, "/* a */ int x; // b\n", []string{"/* a */", "// b"}},
 		{LangRust, "// a\n/// b\nfn f() {} /* c */\n", []string{"// a", "/// b\n", "/* c */"}},
 		{LangCPP, "/* a */ auto s = R\"d(// no)d\"; // b\n", []string{"/* a */", "// b"}},
+		{LangCSharp, "/// a\nclass C { string s = $\"// {x}\"; string r = \"\"\"// no\"\"\"; /* b */ }\n", []string{"/// a", "/* b */"}},
 	}
 	for _, c := range cases {
 		t.Run(c.lang.String(), func(t *testing.T) {

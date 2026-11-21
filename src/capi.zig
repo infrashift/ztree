@@ -28,7 +28,7 @@ fn abortWithMessage(msg: []const u8, first_trace_addr: ?usize) noreturn {
 }
 
 /// `ZTREE_ABI_VERSION` of `include/ztree.h`. Change it with each change of the header.
-pub const abi_version: u32 = 6;
+pub const abi_version: u32 = 7;
 
 /// The status codes of `include/ztree.h`.
 pub const Status = enum(i32) {
@@ -54,10 +54,11 @@ pub fn langFromC(value: u32) ?grammars.Lang {
         3 => .c,
         4 => .rust,
         5 => .cpp,
+        6 => .csharp,
         else => null,
     };
-    assert(lang == null or value <= 5);
-    assert(lang != null or value > 5);
+    assert(lang == null or value <= 6);
+    assert(lang != null or value > 6);
     return lang;
 }
 
@@ -290,7 +291,7 @@ test "ztree_query_compile writes a blob or an error with its position" {
     const re = "((identifier) @a (#match? @a \"\\\\pL\"))";
     try std.testing.expectEqual(@as(i32, 9), ztree_query_compile(0, re, re.len, &blob, blob.len, &size, &err));
     try std.testing.expectEqual(@as(u32, 8), err.kind);
-    try std.testing.expectEqual(@as(i32, 2), ztree_query_compile(6, q, q.len, &blob, blob.len, &size, &err));
+    try std.testing.expectEqual(@as(i32, 2), ztree_query_compile(7, q, q.len, &blob, blob.len, &size, &err));
     try std.testing.expectEqual(@as(i32, 2), ztree_query_compile(0, q, q.len, blob[1..].ptr, 8, &size, &err));
 }
 
@@ -524,7 +525,7 @@ test "ztree_parse writes the flat tree and the count" {
     try std.testing.expectEqual(@as(usize, 0), count);
     try std.testing.expectEqual(@as(i32, 3), testParse(src.ptr, limits.max_source_bytes + 1, &nodes, 1, &count));
     var oc: usize = 0;
-    try std.testing.expectEqual(@as(i32, 2), ztree_parse(6, src.ptr, src.len, &nodes, nodes.len, &count, null, 0, &oc));
+    try std.testing.expectEqual(@as(i32, 2), ztree_parse(7, src.ptr, src.len, &nodes, nodes.len, &count, null, 0, &oc));
     try std.testing.expectEqual(@as(i32, 2), ztree_parse(0, src.ptr, src.len, &nodes, nodes.len, null, null, 0, &oc));
     try std.testing.expectEqual(@as(i32, 2), ztree_parse(0, src.ptr, src.len, &nodes, nodes.len, &count, null, 0, null));
     try std.testing.expectEqual(@as(i32, 2), ztree_parse(0, src.ptr, src.len, &nodes, nodes.len, &count, null, 1, &oc));
@@ -549,7 +550,7 @@ test "ztree_parse writes the field overrides of an ERROR node" {
 }
 
 test "the language functions give the metadata of each grammar" {
-    for (0..6) |v| {
+    for (0..7) |v| {
         const lang: u32 = @intCast(v);
         try std.testing.expect(ztree_language_abi_version(lang) >= 14);
         const symbols = ztree_language_symbol_count(lang);
@@ -564,8 +565,8 @@ test "the language functions give the metadata of each grammar" {
         try std.testing.expect(ztree_language_field_name(lang, fields) != null);
         try std.testing.expectEqual(@as(?[*:0]const u8, null), ztree_language_field_name(lang, fields + 1));
     }
-    try std.testing.expectEqual(@as(u32, 0), ztree_language_symbol_count(6));
-    try std.testing.expectEqual(@as(?[*:0]const u8, null), ztree_language_symbol_name(6, 0));
+    try std.testing.expectEqual(@as(u32, 0), ztree_language_symbol_count(7));
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), ztree_language_symbol_name(7, 0));
     try std.testing.expectEqual(@as(usize, 48), @sizeOf(flat.Node));
 }
 
@@ -585,7 +586,7 @@ test "ztree_extract_comments writes the spans and the count" {
 test "ztree_extract_comments rejects bad arguments" {
     var spans: [1]comments.Span = undefined;
     var count: usize = 99;
-    try std.testing.expectEqual(@as(i32, 2), ztree_extract_comments(6, "x", 1, &spans, 1, &count));
+    try std.testing.expectEqual(@as(i32, 2), ztree_extract_comments(7, "x", 1, &spans, 1, &count));
     try std.testing.expectEqual(@as(usize, 0), count);
     try std.testing.expectEqual(@as(i32, 2), ztree_extract_comments(0, null, 1, &spans, 1, &count));
     try std.testing.expectEqual(@as(i32, 2), ztree_extract_comments(0, "x", 1, null, 1, &count));
@@ -596,10 +597,11 @@ test "ztree_extract_comments rejects bad arguments" {
 }
 
 test "each C language value maps to a grammar" {
-    for (0..6) |v| try std.testing.expect(langFromC(@intCast(v)) != null);
+    for (0..7) |v| try std.testing.expect(langFromC(@intCast(v)) != null);
     try std.testing.expectEqual(grammars.Lang.rust, langFromC(4).?);
     try std.testing.expectEqual(grammars.Lang.cpp, langFromC(5).?);
-    try std.testing.expectEqual(@as(?grammars.Lang, null), langFromC(6));
+    try std.testing.expectEqual(grammars.Lang.csharp, langFromC(6).?);
+    try std.testing.expectEqual(@as(?grammars.Lang, null), langFromC(7));
     try std.testing.expectEqual(@as(?grammars.Lang, null), langFromC(std.math.maxInt(u32)));
     try std.testing.expectEqual(@as(usize, 24), @sizeOf(comments.Span));
     // `ZTREE_MAX_SOURCE_BYTES` of `include/ztree.h`.

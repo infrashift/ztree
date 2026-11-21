@@ -13,7 +13,7 @@ description: "The C ABI of libztree.a: ztree_extract_comments, ztree_parse, the 
 
 # ztree C ABI
 
-**Version:** 6 (`ZTREE_ABI_VERSION`). Version 2 adds `ZTREE_LANG_CPP`. Version 3 adds `ztree_parse` and the language functions. Version 5 adds `ztree_query_compile` and status code 9 ([ADR-0011](/decisions/adr-0011-a-structural-port-of-the-reference-query-compiler--01a1f0a8133a.md)). Version 6 adds `ztree_query_exec`, the blob accessors, `status_field_id` and `ZTREE_NODE_LATER_FIELD` ([ADR-0012](/decisions/adr-0012-a-port-of-the-reference-query-cursor-over-the-flat-tree--01a1f111feba.md)). Version 4 adds `ztree_regex_match` and status codes 7 and 8 ([ADR-0010](/decisions/adr-0010-a-pike-vm-for-an-re2-subset--01a1f0902c3e.md)) ([ADR-0008](/decisions/adr-0008-a-flat-tree-and-a-compiled-query-blob-in-caller-memory--01a1ef929e5c.md), [ADR-0009](/decisions/adr-0009-field-overrides-and-the-node-rules-of-the-flat-tree--01a1f080b1ed.md)).
+**Version:** 7 (`ZTREE_ABI_VERSION`). Version 2 adds `ZTREE_LANG_CPP`. Version 3 adds `ztree_parse` and the language functions. Version 5 adds `ztree_query_compile` and status code 9 ([ADR-0011](/decisions/adr-0011-a-structural-port-of-the-reference-query-compiler--01a1f0a8133a.md)). Version 6 adds `ztree_query_exec`, the blob accessors, `status_field_id` and `ZTREE_NODE_LATER_FIELD` ([ADR-0012](/decisions/adr-0012-a-port-of-the-reference-query-cursor-over-the-flat-tree--01a1f111feba.md)). Version 7 adds `ZTREE_LANG_CSHARP` ([ADR-0019](/decisions/adr-0019-the-c-sharp-grammar--01a1fec3f712.md)). Version 4 adds `ztree_regex_match` and status codes 7 and 8 ([ADR-0010](/decisions/adr-0010-a-pike-vm-for-an-re2-subset--01a1f0902c3e.md)) ([ADR-0008](/decisions/adr-0008-a-flat-tree-and-a-compiled-query-blob-in-caller-memory--01a1ef929e5c.md), [ADR-0009](/decisions/adr-0009-field-overrides-and-the-node-rules-of-the-flat-tree--01a1f080b1ed.md)).
 **Header:** `include/ztree.h`
 **Library:** `zig-out/lib/libztree.a`, from `zig build lib --release`
 **Source:** [ISSUE-007](/issues/issue-007-c-abi-and-static-library-for-go-callers--01a1e96b8f9a.md), [ISSUE-011](/issues/issue-011-the-flat-tree-and-the-node-api--01a1ef92fe81.md)
@@ -23,7 +23,7 @@ The C ABI gives the comment spans and the syntax tree of a source file to a C or
 
 ## Build
 - `zig build lib --release` writes `zig-out/lib/libztree.a` and `zig-out/include/ztree.h`. The library uses ReleaseSafe, so the assertions stay active ([ADR-0003](/decisions/adr-0003-adapt-the-nasa-power-of-10-rules-to-ztree--01a1e96b8f17.md)).
-- The library holds the six grammars, the Zig code and compiler-rt. It needs only libc: `malloc`, `free`, `write`, `abort` and the `isw*` functions of the scanners.
+- The library holds the seven grammars, the Zig code and compiler-rt. It needs only libc: `malloc`, `free`, `write`, `abort` and the `isw*` functions of the scanners.
 - The code is position independent, so a linker can put it into a PIE.
 - The library does not hold the reference runtime.
 
@@ -34,14 +34,14 @@ Returns the ABI version of the library. A caller compares it with `ZTREE_ABI_VER
 ### `int32_t ztree_extract_comments(lang, src, len, spans_out, max_spans, count_out)`
 | Parameter | Type | Rule |
 |---|---|---|
-| `lang` | `uint32_t` | One of `ZTREE_LANG_GO` (0), `ZTREE_LANG_ZIG` (1), `ZTREE_LANG_PYTHON` (2), `ZTREE_LANG_C` (3), `ZTREE_LANG_RUST` (4) and `ZTREE_LANG_CPP` (5). |
+| `lang` | `uint32_t` | One of `ZTREE_LANG_GO` (0), `ZTREE_LANG_ZIG` (1), `ZTREE_LANG_PYTHON` (2), `ZTREE_LANG_C` (3), `ZTREE_LANG_RUST` (4), `ZTREE_LANG_CPP` (5) and `ZTREE_LANG_CSHARP` (6). |
 | `src` | `const uint8_t *` | The source bytes. NULL is valid when `len` is 0. ztree reads the bytes and does not keep the pointer. |
 | `len` | `size_t` | The number of source bytes. The maximum is `ZTREE_MAX_SOURCE_BYTES` (16 MiB). |
 | `spans_out` | `ztree_span *` | The output buffer that the caller owns. NULL is valid when `max_spans` is 0. |
 | `max_spans` | `size_t` | The number of spans in `spans_out`. |
 | `count_out` | `size_t *` | Receives the number of comments in the source. It must not be NULL. |
 
-The function parses the source, walks the tree in source order and writes one `ztree_span` for each comment node. The comment node types come from the `node-types.json` of each grammar: `comment` for Go, Zig, Python, C and C++; `line_comment` and `block_comment` for Rust. A comment node with children, such as a Rust doc comment, gives one span. A source with syntax errors still gives its comments.
+The function parses the source, walks the tree in source order and writes one `ztree_span` for each comment node. The comment node types come from the `node-types.json` of each grammar: `comment` for Go, Zig, Python, C, C++ and C#; `line_comment` and `block_comment` for Rust. A comment node with children, such as a Rust doc comment, gives one span. A source with syntax errors still gives its comments.
 
 ### `int32_t ztree_parse(lang, src, len, nodes_out, max_nodes, node_count_out, overrides_out, max_overrides, override_count_out)`
 The function parses the source and writes the syntax tree as two arrays in the buffers of the caller:

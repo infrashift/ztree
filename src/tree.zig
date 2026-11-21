@@ -184,10 +184,11 @@ pub fn writeSexp(arena: std.mem.Allocator, lang: *const Language, root: *const S
     return writeSexpImpl(true, arena, lang, root, "", w);
 }
 
-/// Write `root` as `writeSexp` does, with the two rules of the flat tree
+/// Write `root` as `writeSexp` does, with the three rules of the flat tree
 /// (ADR-0009). It omits the MISSING nodes of hidden tokens, which a cursor
 /// does not visit. It writes the first character of the text of an ERROR
-/// leaf from `source`, not the lookahead character of the lexer.
+/// leaf from `source`, not the lookahead character of the lexer. An ERROR
+/// node with only hidden children is a leaf.
 pub fn writeVisibleSexp(arena: std.mem.Allocator, lang: *const Language, root: *const Subtree, source: []const u8, w: *std.Io.Writer) (Error || std.Io.Writer.Error)!void {
     assert(lang.symbol_count > 0);
     assert(st.addLength(root.padding, root.size).bytes <= source.len);
@@ -238,7 +239,10 @@ fn writeOpen(comptime reference: bool, lang: *const Language, frame: *SexpFrame,
             try w.writeByte(' ');
             if (frame.field_name) |f| try w.print("{s}: ", .{f});
         }
-        if (node.isError() and node.children.len == 0 and node.size.bytes > 0) {
+        // A cursor does not enter an ERROR node whose children are all
+        // hidden, so the flat tree shows it as a leaf (ADR-0009).
+        const leaf = node.children.len == 0 or (!reference and node.visible_child_count == 0);
+        if (node.isError() and leaf and node.size.bytes > 0) {
             try w.writeAll("(UNEXPECTED ");
             const start = st.addLength(frame.offset, node.padding).bytes;
             try writeChar(if (reference) node.lookahead_char else utf8.decode(source[start..]).code_point, w);

@@ -96,7 +96,7 @@ const Parts = struct {
 /// Write the blob of a compiled query to `out` when it fits. Return the
 /// size of the blob. The quantifiers form a matrix of pattern × capture.
 pub fn write(arena: std.mem.Allocator, lang_value: u32, q: *const query.Query, p: *const predicates.Predicates, out: []u8) error{OutOfMemory}!usize {
-    assert(lang_value <= 5);
+    assert(lang_value <= 6);
     const capture_count = q.captures.slices.items.len;
     const matrix = try arena.alloc(query.Quantifier, q.patterns.items.len * capture_count);
     @memset(matrix, .zero);

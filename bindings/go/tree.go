@@ -90,14 +90,14 @@ type Language struct {
 }
 
 var (
-	languageOnce [LangCPP + 1]sync.Once
-	languages    [LangCPP + 1]*Language
+	languageOnce [LangCSharp + 1]sync.Once
+	languages    [LangCSharp + 1]*Language
 )
 
 // NewLanguage returns the Language of a grammar, or nil for an unknown
 // grammar. Each call for a grammar returns the same *Language.
 func NewLanguage(lang Lang) *Language {
-	if lang > LangCPP {
+	if lang > LangCSharp {
 		return nil
 	}
 	languageOnce[lang].Do(func() { languages[lang] = loadLanguage(lang) })

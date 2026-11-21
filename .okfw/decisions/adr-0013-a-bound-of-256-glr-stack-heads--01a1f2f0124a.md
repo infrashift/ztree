@@ -47,3 +47,6 @@ Three files need more than 64 heads. Each is C++ code that the C grammar reads (
 - **No bound, as in the reference.** Rejected: ADR-0003 needs a fixed bound for each loop and each list.
 - **A bound of 128.** Rejected: the margin over 90 is too small for unknown C++ headers. A larger bound costs nothing until a parse uses it.
 - **Trim the versions during the pop.** Rejected: the order of the versions then differs from the reference, and the trees can differ.
+
+## Later change
+2026-11-21: The C# grammar (ADR-0019). A differential run read 15,651 C# files of EF Core and ASP.NET Core. It gave no `TooManyVersions` error, so no parse reached the bound of 256 heads ([ISSUE-023](/issues/issue-023-the-c-sharp-grammar--01a1fec3b918.md)).

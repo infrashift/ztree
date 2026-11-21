@@ -1,0 +1,7 @@
+repo: https://github.com/tree-sitter/tree-sitter-c-sharp
+tag: v0.24.0
+commit: d4bbe18103c3380c6454085e589d2610938da142
+abi: 15
+vendored: 2026-11-21
+paths: src/ LICENSE test/corpus/
+local changes: none

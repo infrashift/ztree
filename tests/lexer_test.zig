@@ -102,6 +102,8 @@ const samples = [_]Sample{
     .{ .lang = .c, .text = @embedFile("c_preprocessor") },
     .{ .lang = .rust, .text = @embedFile("rust_declarations") },
     .{ .lang = .rust, .text = @embedFile("rust_literals") },
+    .{ .lang = .csharp, .text = @embedFile("csharp_classes") },
+    .{ .lang = .csharp, .text = @embedFile("csharp_literals") },
     .{ .lang = .zig, .text = @embedFile("zig_lexer") },
 };
 

@@ -211,7 +211,7 @@ func TestReferenceRules(t *testing.T) {
 }
 
 func TestLanguage(t *testing.T) {
-	for lang := LangGo; lang <= LangCPP; lang++ {
+	for lang := LangGo; lang <= LangCSharp; lang++ {
 		l := NewLanguage(lang)
 		if l == nil || l != NewLanguage(lang) || l.Lang() != lang {
 			t.Fatalf("NewLanguage(%s)", lang)

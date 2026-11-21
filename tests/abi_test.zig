@@ -77,6 +77,7 @@ const expected = [_]Counts{
     .{ .lang = .c, .abi_version = 15, .state_count = 2015, .large_state_count = 455, .symbol_count = 360, .alias_count = 3, .token_count = 161, .external_token_count = 0, .field_count = 39, .production_id_count = 131, .max_alias_sequence_length = 9 },
     .{ .lang = .zig, .abi_version = 14, .state_count = 1854, .large_state_count = 936, .symbol_count = 267, .alias_count = 1, .token_count = 151, .external_token_count = 0, .field_count = 16, .production_id_count = 57, .max_alias_sequence_length = 11 },
     .{ .lang = .rust, .abi_version = 15, .state_count = 3825, .large_state_count = 1064, .symbol_count = 351, .alias_count = 4, .token_count = 157, .external_token_count = 11, .field_count = 31, .production_id_count = 295, .max_alias_sequence_length = 10 },
+    .{ .lang = .csharp, .abi_version = 15, .state_count = 9756, .large_state_count = 5301, .symbol_count = 575, .alias_count = 3, .token_count = 229, .external_token_count = 14, .field_count = 28, .production_id_count = 221, .max_alias_sequence_length = 15 },
 };
 
 test "each grammar matches its generated counts" {
@@ -100,7 +101,7 @@ test "each grammar matches its generated counts" {
 
 test "the ABI 15 grammars carry their names" {
     const names = [_]struct { grammars.Lang, []const u8 }{
-        .{ .go, "go" }, .{ .python, "python" }, .{ .c, "c" }, .{ .rust, "rust" },
+        .{ .go, "go" }, .{ .python, "python" }, .{ .c, "c" }, .{ .rust, "rust" }, .{ .csharp, "c_sharp" },
     };
     for (names) |n| {
         const ext = abi.extended(grammars.language(n[0])).?;
@@ -123,6 +124,8 @@ test "lex modes read with the right stride" {
         .{ .c, 2013, .{ .lex_state = 120, .external_lex_state = 0, .reserved_word_set_id = 0 } },
         .{ .rust, 1, .{ .lex_state = 71, .external_lex_state = 2, .reserved_word_set_id = 0 } },
         .{ .rust, 3824, .{ .lex_state = 0xffff, .external_lex_state = 0, .reserved_word_set_id = 0 } },
+        .{ .csharp, 1, .{ .lex_state = 156, .external_lex_state = 2, .reserved_word_set_id = 0 } },
+        .{ .csharp, 9755, .{ .lex_state = 0xffff, .external_lex_state = 0, .reserved_word_set_id = 0 } },
     };
     for (rows) |r| {
         errdefer std.debug.print("grammar {s} state {d}\n", .{ @tagName(r[0]), r[1] });

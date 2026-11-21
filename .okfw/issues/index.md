@@ -26,4 +26,5 @@
 * [ISSUE-020: lexis checks the documentation of ztree](issue-020-lexis-checks-the-documentation-of-ztree--01a1f524fb01.md) - A scan of the ztree documentation with the ste-100 ruleset of lexis gives 122 warnings, and no gate runs lexis.
 * [ISSUE-021: lexis is now lexiscope](issue-021-lexis-is-now-lexiscope--01a1f548c7d3.md) - The documentation linter lexis has the new name lexiscope, so the docs-lexis task and the current documents of ztree use an old name.
 * [ISSUE-022: query-diff skips the queries with directives](issue-022-query-diff-skips-the-queries-with-directives--01a1f56e542c.md) - query-diff does not run the queries that ztree rejects for their directives, so it compares no pattern of two corpus files, and the directives give two different error codes.
+* [ISSUE-023: The C# grammar](issue-023-the-c-sharp-grammar--01a1fec3b918.md) - Vendor tree-sitter-c-sharp and add it as the seventh grammar, so semscope and lexiscope can read C# files.
 

@@ -42,6 +42,7 @@ These features are outside the scope: incremental reparse and edits, the query e
 | tree-sitter-rust | v0.24.2 | 15 | 11 |
 | tree-sitter-zig (tree-sitter-grammars) | v1.1.2 with a patch (ADR-0006, ADR-0015) | 14 | 0 |
 | tree-sitter-cpp (added by ADR-0007, checked on 2026-11-18) | v0.23.4 | 14 | 2 |
+| tree-sitter-c-sharp (added by ADR-0019, checked on 2026-11-21) | v0.24.0 | 15 | 14 |
 
 ## Consequences
 - ztree supports two struct layouts because the Zig grammar uses ABI 14.

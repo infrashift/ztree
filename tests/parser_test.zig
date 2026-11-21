@@ -55,6 +55,8 @@ const extra_inputs = [_]struct { []const u8, []const u8 }{
     .{ "c", "int f( { return; }\nstruct { int x }\n" },
     .{ "rust", "fn f() { let union = 1; let default = 2; let auto = 3; union.x = default.y; macro_rules = 4; r#type = 5; }\n" },
     .{ "rust", "fn f( { let x = ; }\nstruct S { a: }\n" },
+    .{ "csharp", "class C { int var = 1; int async = 2; void f() { var record = nameof(async); var x = await; dynamic d = var + record; } }\n" },
+    .{ "csharp", "class C { void f( { int x = ; }\nstruct S { int }\n" },
     .{ "zig", "const type = 1; const anytype = 2; fn f(error: u8) void { _ = error; }\n" },
     .{ "zig", "fn f( { return; }\nconst x = ;\n" },
 };
@@ -132,6 +134,7 @@ const large_tables = [_]struct { []const u8, []const u8, []const u8 }{
     .{ "go", "package p\n\nvar table = []int{", "}\n" },
     .{ "c", "static const int table[] = {", "};\n" },
     .{ "cpp", "static const int table[] = {", "};\n" },
+    .{ "csharp", "static class T { static readonly int[] table = {", "}; }\n" },
     .{ "python", "table = [", "]\n" },
     .{ "rust", "static TABLE: &[u8] = &[", "];\n" },
     .{ "zig", "const table = [_]u8{", "};\n" },

@@ -27,13 +27,13 @@ const Totals = struct { runs: usize = 0, matches: usize = 0, captures: usize = 0
 
 fn langOf(path: []const u8) ?grammars.Lang {
     const ext = std.fs.path.extension(path);
-    const map = [_]struct { []const u8, grammars.Lang }{ .{ ".go", .go }, .{ ".zig", .zig }, .{ ".py", .python }, .{ ".c", .c }, .{ ".h", .c }, .{ ".rs", .rust }, .{ ".cc", .cpp }, .{ ".cpp", .cpp }, .{ ".hpp", .cpp } };
+    const map = [_]struct { []const u8, grammars.Lang }{ .{ ".go", .go }, .{ ".zig", .zig }, .{ ".py", .python }, .{ ".c", .c }, .{ ".h", .c }, .{ ".rs", .rust }, .{ ".cc", .cpp }, .{ ".cpp", .cpp }, .{ ".hpp", .cpp }, .{ ".cs", .csharp } };
     for (map) |m| if (std.mem.eql(u8, ext, m[0])) return m[1];
     return null;
 }
 
 /// Add each source file of `root` to the source list of its language.
-fn addDir(arena: std.mem.Allocator, io: std.Io, root: []const u8, sources: *[6]std.ArrayList(Source)) !void {
+fn addDir(arena: std.mem.Allocator, io: std.Io, root: []const u8, sources: *[7]std.ArrayList(Source)) !void {
     var dir = try std.Io.Dir.cwd().openDir(io, root, .{ .iterate = true });
     defer dir.close(io);
     var walker = try dir.walkSelectively(arena);
@@ -119,7 +119,7 @@ test "query matches equal the matches of the reference query cursor" {
     var arena_state = std.heap.ArenaAllocator.init(gpa);
     defer arena_state.deinit();
     const arena = arena_state.allocator();
-    var sources: [6]std.ArrayList(Source) = @splat(.empty);
+    var sources: [7]std.ArrayList(Source) = @splat(.empty);
     inline for (grammar_corpus.paths, grammar_corpus.langs) |path, lang_name| {
         var examples: std.ArrayList(corpus_file.Example) = .empty;
         try corpus_file.parseCorpus(arena, @embedFile(path), &examples);
@@ -127,7 +127,7 @@ test "query matches equal the matches of the reference query cursor" {
         for (examples.items) |ex| try sources[@backingInt(lang)].append(arena, .{ .name = ex.name, .text = ex.input });
     }
     for (options.dirs) |d| try addDir(arena, std.testing.io, d, &sources);
-    var queries: [6]std.ArrayList(Query) = @splat(.empty);
+    var queries: [7]std.ArrayList(Query) = @splat(.empty);
     inline for (query_corpus.paths, query_corpus.langs) |path, lang_name| {
         try queries[@backingInt(std.meta.stringToEnum(grammars.Lang, lang_name).?)].append(arena, .{ .name = path, .text = @embedFile(path), .corpus = true });
     }

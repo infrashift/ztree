@@ -27,7 +27,7 @@ pub const Span = extern struct {
 /// The node types of the comments of each grammar (`node-types.json`).
 pub fn commentKinds(lang: grammars.Lang) []const []const u8 {
     const kinds: []const []const u8 = switch (lang) {
-        .go, .zig, .python, .c, .cpp => &.{"comment"},
+        .go, .zig, .python, .c, .cpp, .csharp => &.{"comment"},
         .rust => &.{ "line_comment", "block_comment" },
     };
     assert(kinds.len > 0);
@@ -113,6 +113,7 @@ test "extractComments finds line, block and doc comments" {
     try testExpectComments(.c, "/* a */ int x; // b\n", &.{ "/* a */", "// b" });
     try testExpectComments(.zig, "// a\n/// b\nconst x = 1; //! c\n", &.{ "// a", "/// b", "//! c" });
     try testExpectComments(.rust, "// a\n/// b\nfn f() {} /* c */\n", &.{ "// a", "/// b\n", "/* c */" });
+    try testExpectComments(.csharp, "// a\n/// <summary>b</summary>\nclass C { string s = @\"// no\"; /* c */ }\n", &.{ "// a", "/// <summary>b</summary>", "/* c */" });
 }
 
 test "extractComments reports a buffer that is too small" {

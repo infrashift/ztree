@@ -58,6 +58,9 @@ static void test_each_grammar(void) {
   /* The raw string holds "//": the external scanner reads it as string content. */
   const char *cpp[] = {"/* a */", "// b"};
   expect_comments(ZTREE_LANG_CPP, "/* a */ auto s = R\"d(// no)d\"; // b\n", cpp, 2);
+  /* The C# raw string also holds "//". */
+  const char *cs[] = {"/// a", "/* b */"};
+  expect_comments(ZTREE_LANG_CSHARP, "/// a\nclass C { string s = \"\"\"// no\"\"\"; /* b */ }\n", cs, 2);
 }
 
 static void test_points(void) {
@@ -170,7 +173,7 @@ static void test_parse(void) {
 }
 
 static void test_language(void) {
-  for (uint32_t lang = 0; lang <= ZTREE_LANG_CPP; lang++) {
+  for (uint32_t lang = 0; lang <= ZTREE_LANG_CSHARP; lang++) {
     uint32_t abi = ztree_language_abi_version(lang);
     CHECK(abi == 14 || abi == 15);
     uint32_t symbols = ztree_language_symbol_count(lang);
