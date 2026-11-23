@@ -1,13 +1,13 @@
 ---
-id: "01a1f111-feba-73be-a57f-7e24008de5fb"
+x-okfw-id: "01a1f111-feba-73be-a57f-7e24008de5fb"
 title: "ADR-0012: A port of the reference query cursor over the flat tree"
 type: "ADR"
 tags:
   - "adr"
   - "query"
   - "semscope"
-created: "2026-11-18T17:50:50-06:00"
-timestamp: "2026-11-18T17:50:50-06:00"
+x-okfw-created: "2026-11-18T17:50:50-06:00"
+x-okfw-timestamp: "2026-11-18T17:50:50-06:00"
 description: "src/query_exec.zig ports ts_query_cursor__advance and next_match over the flat tree, with the cursor status in each node and the text predicates of go-tree-sitter."
 ---
 

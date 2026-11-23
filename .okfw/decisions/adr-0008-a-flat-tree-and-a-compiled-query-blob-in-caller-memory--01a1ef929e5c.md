@@ -1,13 +1,13 @@
 ---
-id: "01a1ef92-9e5c-773d-89fe-868e4fa84810"
+x-okfw-id: "01a1ef92-9e5c-773d-89fe-868e4fa84810"
 title: "ADR-0008: A flat tree and a compiled query blob in caller memory"
 type: "ADR"
 tags:
   - "adr"
   - "capi"
   - "semscope"
-created: "2026-11-18T10:52:05-06:00"
-timestamp: "2026-11-18T10:52:05-06:00"
+x-okfw-created: "2026-11-18T10:52:05-06:00"
+x-okfw-timestamp: "2026-11-18T10:52:05-06:00"
 description: "The C ABI writes the finished tree as a flat node array and a compiled query as a pointer-free blob, both in caller memory, with no handles and no callbacks."
 ---
 

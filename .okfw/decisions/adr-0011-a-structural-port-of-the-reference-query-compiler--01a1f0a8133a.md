@@ -1,13 +1,13 @@
 ---
-id: "01a1f0a8-133a-742c-8985-541a155ee7e9"
+x-okfw-id: "01a1f0a8-133a-742c-8985-541a155ee7e9"
 title: "ADR-0011: A structural port of the reference query compiler"
 type: "ADR"
 tags:
   - "adr"
   - "query"
   - "semscope"
-created: "2026-11-18T15:55:09-06:00"
-timestamp: "2026-11-18T15:55:09-06:00"
+x-okfw-created: "2026-11-18T15:55:09-06:00"
+x-okfw-timestamp: "2026-11-18T15:55:09-06:00"
 description: "src/query.zig and src/query_analysis.zig port ts_query_new and its parse-table analysis step for step, and the predicates follow NewQuery of go-tree-sitter."
 ---
 

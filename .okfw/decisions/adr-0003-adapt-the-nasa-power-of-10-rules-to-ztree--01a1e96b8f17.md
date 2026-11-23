@@ -1,13 +1,13 @@
 ---
-id: "01a1e96b-8f17-7389-869c-4709bcce5f4b"
+x-okfw-id: "01a1e96b-8f17-7389-869c-4709bcce5f4b"
 title: "ADR-0003: Adapt the NASA Power of 10 rules to ztree"
 type: "ADR"
 tags:
   - "adr"
   - "safety"
   - "lint"
-created: "2026-11-17T06:11:42-06:00"
-timestamp: "2026-11-17T06:11:42-06:00"
+x-okfw-created: "2026-11-17T06:11:42-06:00"
+x-okfw-timestamp: "2026-11-17T06:11:42-06:00"
 description: "ztree follows the Power of 10 rules in its Zig runtime, with deviations for the arena, the C ABI callbacks and generated C."
 ---
 

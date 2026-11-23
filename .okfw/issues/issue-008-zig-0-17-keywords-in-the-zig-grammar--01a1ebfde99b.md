@@ -1,15 +1,15 @@
 ---
-id: "01a1ebfd-e99b-7f2b-91a7-0eb5c44fc3f8"
+x-okfw-id: "01a1ebfd-e99b-7f2b-91a7-0eb5c44fc3f8"
 title: "ISSUE-008: Zig 0.17 keywords in the Zig grammar"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "closed"
   - "grammar"
   - "zig"
-created: "2026-11-17T18:10:48-06:00"
-timestamp: "2026-11-17T18:10:48-06:00"
+x-okfw-created: "2026-11-17T18:10:48-06:00"
+x-okfw-timestamp: "2026-11-17T18:10:48-06:00"
 description: "tree-sitter-zig v1.1.2 reserves async, await and usingnamespace, so Zig 0.17 code that uses them as identifiers gives syntax errors."
 ---
 

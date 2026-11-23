@@ -1,13 +1,13 @@
 ---
-id: "01a1e96b-8ed2-7c9d-9689-82cba3d35d27"
+x-okfw-id: "01a1e96b-8ed2-7c9d-9689-82cba3d35d27"
 title: "Development workflow"
 type: "Guide"
 tags:
   - "conventions"
   - "workflow"
   - "meta"
-created: "2026-11-17T06:11:42-06:00"
-timestamp: "2026-11-17T06:11:42-06:00"
+x-okfw-created: "2026-11-17T06:11:42-06:00"
+x-okfw-timestamp: "2026-11-17T06:11:42-06:00"
 description: "The loop for each ztree phase: implement one task, run zmake check until green, update the wiki, then commit."
 ---
 

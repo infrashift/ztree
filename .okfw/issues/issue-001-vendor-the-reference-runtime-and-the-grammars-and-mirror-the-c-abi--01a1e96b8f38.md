@@ -1,15 +1,15 @@
 ---
-id: "01a1e96b-8f38-730d-8554-f67f7266899d"
+x-okfw-id: "01a1e96b-8f38-730d-8554-f67f7266899d"
 title: "ISSUE-001: Vendor the reference runtime and the grammars and mirror the C ABI"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "phase-1"
   - "vendor"
   - "closed"
-created: "2026-11-17T06:11:42-06:00"
-timestamp: "2026-11-17T06:16:26-06:00"
+x-okfw-created: "2026-11-17T06:11:42-06:00"
+x-okfw-timestamp: "2026-11-17T06:16:26-06:00"
 description: "Vendor the reference runtime and the grammars and mirror the C ABI."
 ---
 

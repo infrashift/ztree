@@ -1,5 +1,7 @@
 ---
-okf_version: "0.2"
+okf_version: "0.3"
+description: "Design record for ztree, the Zig Tree-sitter runtime behind lexis and semscope: ADRs on arenas, the flat tree, GLR bounds, the query compiler and the patched Zig grammar, plus guides and issues."
+title: "ztree"
 ---
 
 # /

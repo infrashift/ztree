@@ -1,15 +1,15 @@
 ---
-id: "01a1f524-fb01-77df-8f0d-556f8405ebf1"
+x-okfw-id: "01a1f524-fb01-77df-8f0d-556f8405ebf1"
 title: "ISSUE-020: lexis checks the documentation of ztree"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "phase-19"
   - "docs"
   - "closed"
-created: "2026-11-19T12:50:03-06:00"
-timestamp: "2026-11-19T12:52:06-06:00"
+x-okfw-created: "2026-11-19T12:50:03-06:00"
+x-okfw-timestamp: "2026-11-19T12:52:06-06:00"
 description: "A scan of the ztree documentation with the ste-100 ruleset of lexis gives 122 warnings, and no gate runs lexis."
 ---
 

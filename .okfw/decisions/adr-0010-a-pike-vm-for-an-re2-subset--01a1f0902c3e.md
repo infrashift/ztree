@@ -1,13 +1,13 @@
 ---
-id: "01a1f090-2c3e-7f21-b2ae-405a93d5a320"
+x-okfw-id: "01a1f090-2c3e-7f21-b2ae-405a93d5a320"
 title: "ADR-0010: A Pike VM for an RE2 subset"
 type: "ADR"
 tags:
   - "adr"
   - "regex"
   - "semscope"
-created: "2026-11-18T15:29:02-06:00"
-timestamp: "2026-11-18T15:29:02-06:00"
+x-okfw-created: "2026-11-18T15:29:02-06:00"
+x-okfw-timestamp: "2026-11-18T15:29:02-06:00"
 description: "src/regex.zig reads an ASCII subset of RE2 and matches with a Pike VM in linear time, with the result of regexp.Match of Go."
 ---
 

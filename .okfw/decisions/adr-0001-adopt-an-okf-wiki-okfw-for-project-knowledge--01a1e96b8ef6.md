@@ -1,12 +1,12 @@
 ---
-id: "01a1e96b-8ef6-73ff-85de-686c6da565e5"
+x-okfw-id: "01a1e96b-8ef6-73ff-85de-686c6da565e5"
 title: "ADR-0001: Adopt an OKF wiki (okfw) for project knowledge"
 type: "ADR"
 tags:
   - "adr"
   - "process"
-created: "2026-11-17T06:11:42-06:00"
-timestamp: "2026-11-17T06:11:42-06:00"
+x-okfw-created: "2026-11-17T06:11:42-06:00"
+x-okfw-timestamp: "2026-11-17T06:11:42-06:00"
 description: "ztree records decisions, scope and open work in an OKF wiki that okfw manages and validates."
 ---
 

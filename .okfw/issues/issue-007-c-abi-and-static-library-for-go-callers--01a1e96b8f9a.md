@@ -1,15 +1,15 @@
 ---
-id: "01a1e96b-8f9a-7eb7-98bd-418889fa7058"
+x-okfw-id: "01a1e96b-8f9a-7eb7-98bd-418889fa7058"
 title: "ISSUE-007: C ABI and static library for Go callers"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "closed"
   - "phase-7"
   - "capi"
-created: "2026-11-17T06:11:42-06:00"
-timestamp: "2026-11-17T06:11:42-06:00"
+x-okfw-created: "2026-11-17T06:11:42-06:00"
+x-okfw-timestamp: "2026-11-17T06:11:42-06:00"
 description: "C ABI and static library for Go callers."
 ---
 

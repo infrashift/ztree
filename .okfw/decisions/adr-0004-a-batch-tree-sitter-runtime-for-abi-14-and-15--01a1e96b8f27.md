@@ -1,12 +1,12 @@
 ---
-id: "01a1e96b-8f27-7ac5-90a7-415ea0a6c5f2"
+x-okfw-id: "01a1e96b-8f27-7ac5-90a7-415ea0a6c5f2"
 title: "ADR-0004: A batch Tree-sitter runtime for ABI 14 and 15"
 type: "ADR"
 tags:
   - "adr"
   - "scope"
-created: "2026-11-17T06:11:42-06:00"
-timestamp: "2026-11-17T06:11:42-06:00"
+x-okfw-created: "2026-11-17T06:11:42-06:00"
+x-okfw-timestamp: "2026-11-17T06:11:42-06:00"
 description: "ztree parses whole files with generated grammars of ABI 14 and 15 and extracts comments, with no incremental edits or queries."
 ---
 

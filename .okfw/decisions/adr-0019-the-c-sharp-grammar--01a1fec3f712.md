@@ -1,13 +1,13 @@
 ---
-id: "01a1fec3-f712-72e3-93e5-4a5159f33103"
+x-okfw-id: "01a1fec3-f712-72e3-93e5-4a5159f33103"
 title: "ADR-0019: The C# grammar"
 type: "ADR"
 tags:
   - "adr"
   - "grammar"
   - "scope"
-created: "2026-11-21T09:40:18-06:00"
-timestamp: "2026-11-21T09:40:23-06:00"
+x-okfw-created: "2026-11-21T09:40:18-06:00"
+x-okfw-timestamp: "2026-11-21T09:40:23-06:00"
 description: "ztree vendors tree-sitter-c-sharp v0.24.0 as its seventh grammar, with ZTREE_LANG_CSHARP and C ABI version 7, so semscope and lexiscope can read C# files."
 ---
 

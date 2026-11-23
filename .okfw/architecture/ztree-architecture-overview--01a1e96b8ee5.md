@@ -1,12 +1,12 @@
 ---
-id: "01a1e96b-8ee5-74dc-a05a-d09bc1ab6d9d"
+x-okfw-id: "01a1e96b-8ee5-74dc-a05a-d09bc1ab6d9d"
 title: "ztree architecture overview"
 type: "Architecture"
 tags:
   - "architecture"
   - "overview"
-created: "2026-11-17T06:11:42-06:00"
-timestamp: "2026-11-17T06:11:42-06:00"
+x-okfw-created: "2026-11-17T06:11:42-06:00"
+x-okfw-timestamp: "2026-11-17T06:11:42-06:00"
 description: "The modules of ztree and the data flow of one parse, from source text to comment spans and the flat tree."
 ---
 

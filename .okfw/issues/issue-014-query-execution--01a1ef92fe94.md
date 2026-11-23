@@ -1,15 +1,15 @@
 ---
-id: "01a1ef92-fe94-7afc-8922-90cd0ceddb73"
+x-okfw-id: "01a1ef92-fe94-7afc-8922-90cd0ceddb73"
 title: "ISSUE-014: Query execution"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "phase-12"
   - "query"
   - "closed"
-created: "2026-11-18T10:52:30-06:00"
-timestamp: "2026-11-18T15:56:02-06:00"
+x-okfw-created: "2026-11-18T10:52:30-06:00"
+x-okfw-timestamp: "2026-11-18T15:56:02-06:00"
 description: "Query execution."
 ---
 

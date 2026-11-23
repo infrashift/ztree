@@ -1,13 +1,13 @@
 ---
-id: "01a1ec92-dc4f-73ca-bb53-b874acc0bbdb"
+x-okfw-id: "01a1ec92-dc4f-73ca-bb53-b874acc0bbdb"
 title: "ztree C ABI"
 type: "Spec"
 tags:
   - "spec"
   - "capi"
   - "go"
-created: "2026-11-17T20:53:30-06:00"
-timestamp: "2026-11-17T20:53:30-06:00"
+x-okfw-created: "2026-11-17T20:53:30-06:00"
+x-okfw-timestamp: "2026-11-17T20:53:30-06:00"
 description: "The C ABI of libztree.a: ztree_extract_comments, ztree_parse, the language functions, the status codes, the memory rules and the Go binding in bindings/go."
 ---
 

@@ -1,13 +1,13 @@
 ---
-id: "01a1ef92-6073-7739-971c-c048af8a1244"
+x-okfw-id: "01a1ef92-6073-7739-971c-c048af8a1244"
 title: "ADR-0007: ztree is the Tree-sitter service of lexis and semscope"
 type: "ADR"
 tags:
   - "adr"
   - "scope"
   - "semscope"
-created: "2026-11-18T10:51:50-06:00"
-timestamp: "2026-11-18T10:51:50-06:00"
+x-okfw-created: "2026-11-18T10:51:50-06:00"
+x-okfw-timestamp: "2026-11-18T10:51:50-06:00"
 description: "ztree adds the C++ grammar, a flat-tree node API, a query engine and a bounded regex engine so that semscope can replace go-tree-sitter."
 ---
 

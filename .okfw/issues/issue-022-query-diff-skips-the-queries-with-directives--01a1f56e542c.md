@@ -1,16 +1,16 @@
 ---
-id: "01a1f56e-542c-7edc-b0b8-eec7da83fa4f"
+x-okfw-id: "01a1f56e-542c-7edc-b0b8-eec7da83fa4f"
 title: "ISSUE-022: query-diff skips the queries with directives"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "phase-21"
   - "query"
   - "test"
   - "closed"
-created: "2026-11-19T14:10:10-06:00"
-timestamp: "2026-11-19T14:22:07-06:00"
+x-okfw-created: "2026-11-19T14:10:10-06:00"
+x-okfw-timestamp: "2026-11-19T14:22:07-06:00"
 description: "query-diff does not run the queries that ztree rejects for their directives, so it compares no pattern of two corpus files, and the directives give two different error codes."
 ---
 

@@ -1,13 +1,13 @@
 ---
-id: "01a1f3e6-17cd-7547-b958-1ff08d00bd6e"
+x-okfw-id: "01a1f3e6-17cd-7547-b958-1ff08d00bd6e"
 title: "ADR-0015: Three rare Zig forms in the patched grammar"
 type: "ADR"
 tags:
   - "adr"
   - "grammar"
   - "zig"
-created: "2026-11-19T07:01:45-06:00"
-timestamp: "2026-11-19T07:01:45-06:00"
+x-okfw-created: "2026-11-19T07:01:45-06:00"
+x-okfw-timestamp: "2026-11-19T07:01:45-06:00"
 description: "The Zig grammar patch accepts an error set as a container field, a slice of an if type and an identifier as the asm clobbers."
 ---
 

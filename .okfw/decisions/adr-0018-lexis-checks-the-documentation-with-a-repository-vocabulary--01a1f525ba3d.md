@@ -1,13 +1,13 @@
 ---
-id: "01a1f525-ba3d-7eef-bda1-862a3dd7da82"
+x-okfw-id: "01a1f525-ba3d-7eef-bda1-862a3dd7da82"
 title: "ADR-0018: lexis checks the documentation with a repository vocabulary"
 type: "ADR"
 tags:
   - "adr"
   - "docs"
   - "lexis"
-created: "2026-11-19T12:50:52-06:00"
-timestamp: "2026-11-19T12:50:52-06:00"
+x-okfw-created: "2026-11-19T12:50:52-06:00"
+x-okfw-timestamp: "2026-11-19T12:50:52-06:00"
 description: "zmake docs-lexis scans CLAUDE.md, PLAN.md and the wiki with lexis and vocabulary.cue, fails on each finding, and runs only when lexis is on the PATH."
 ---
 
