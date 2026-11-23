@@ -1,15 +1,15 @@
 ---
-id: "01a1f080-f76c-775c-a591-dd7bd7e7886c"
+x-okfw-id: "01a1f080-f76c-775c-a591-dd7bd7e7886c"
 title: "ISSUE-016: The GLR stack limit of 64 heads"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "parser"
   - "phase-14"
   - "closed"
-created: "2026-11-18T15:12:26-06:00"
-timestamp: "2026-11-19T02:34:40-06:00"
+x-okfw-created: "2026-11-18T15:12:26-06:00"
+x-okfw-timestamp: "2026-11-19T02:34:40-06:00"
 description: "The C grammar needs more than 64 stack heads for one libstdc++ header, so ztree returns TooManyVersions where the reference runtime gives a tree."
 ---
 

@@ -1,13 +1,13 @@
 ---
-id: "01a1f080-b1ed-7b27-b22e-ac78e35e064e"
+x-okfw-id: "01a1f080-b1ed-7b27-b22e-ac78e35e064e"
 title: "ADR-0009: Field overrides and the node rules of the flat tree"
 type: "ADR"
 tags:
   - "adr"
   - "capi"
   - "semscope"
-created: "2026-11-18T15:12:08-06:00"
-timestamp: "2026-11-18T15:12:08-06:00"
+x-okfw-created: "2026-11-18T15:12:08-06:00"
+x-okfw-timestamp: "2026-11-18T15:12:08-06:00"
 description: "ztree_parse writes field overrides for the rare field lookups that the first-child rule does not give, and the binding follows the sibling and error rules of the reference TSNode API."
 ---
 

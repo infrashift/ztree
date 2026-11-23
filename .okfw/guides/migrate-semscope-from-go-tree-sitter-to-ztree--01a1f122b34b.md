@@ -1,13 +1,13 @@
 ---
-id: "01a1f122-b34b-7a0e-82cc-522d5fb0d05c"
+x-okfw-id: "01a1f122-b34b-7a0e-82cc-522d5fb0d05c"
 title: "Migrate semscope from go-tree-sitter to ztree"
 type: "Guide"
 tags:
   - "guide"
   - "semscope"
   - "go"
-created: "2026-11-18T18:09:05-06:00"
-timestamp: "2026-11-18T18:09:05-06:00"
+x-okfw-created: "2026-11-18T18:09:05-06:00"
+x-okfw-timestamp: "2026-11-18T18:09:05-06:00"
 description: "The steps, the API map, the error changes, the grammar pin changes and the measured parity and speed for moving semscope to the ztree Go binding."
 ---
 

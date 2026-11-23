@@ -1,16 +1,16 @@
 ---
-id: "01a1ec8a-b913-72f7-8b35-58c6db4785c2"
+x-okfw-id: "01a1ec8a-b913-72f7-8b35-58c6db4785c2"
 title: "ISSUE-009: Rare Zig forms that the patched grammar cannot read"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "closed"
   - "phase-16"
   - "grammar"
   - "zig"
-created: "2026-11-17T20:44:36-06:00"
-timestamp: "2026-11-17T20:44:36-06:00"
+x-okfw-created: "2026-11-17T20:44:36-06:00"
+x-okfw-timestamp: "2026-11-17T20:44:36-06:00"
 description: "Three rare Zig forms give syntax errors in 5 of 579 files of the Zig 0.17.1 standard library and zmake."
 ---
 

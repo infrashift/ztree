@@ -1,16 +1,16 @@
 ---
-id: "01a1f4ea-ab02-7301-9852-aa78ca1d5883"
+x-okfw-id: "01a1f4ea-ab02-7301-9852-aa78ca1d5883"
 title: "ISSUE-019: An executable stack with a Debug libztree.a"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "closed"
   - "phase-18"
   - "binding"
   - "build"
-created: "2026-11-19T11:46:22-06:00"
-timestamp: "2026-11-19T11:46:22-06:00"
+x-okfw-created: "2026-11-19T11:46:22-06:00"
+x-okfw-timestamp: "2026-11-19T11:46:22-06:00"
 description: "The self-hosted backend of a Debug build writes capi.o without a .note.GNU-stack section, so GNU ld gives a cgo program an executable stack."
 ---
 

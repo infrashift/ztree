@@ -1,15 +1,15 @@
 ---
-id: "01a1ef92-fe7b-7716-bdd2-2914327309d4"
+x-okfw-id: "01a1ef92-fe7b-7716-bdd2-2914327309d4"
 title: "ISSUE-010: The C++ grammar"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "phase-8"
   - "grammar"
   - "closed"
-created: "2026-11-18T10:52:30-06:00"
-timestamp: "2026-11-18T10:57:45-06:00"
+x-okfw-created: "2026-11-18T10:52:30-06:00"
+x-okfw-timestamp: "2026-11-18T10:57:45-06:00"
 description: "The C++ grammar."
 ---
 

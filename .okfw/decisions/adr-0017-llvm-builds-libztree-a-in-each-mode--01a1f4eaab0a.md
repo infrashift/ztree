@@ -1,5 +1,5 @@
 ---
-id: "01a1f4ea-ab0a-7550-b0ce-acd58559fb62"
+x-okfw-id: "01a1f4ea-ab0a-7550-b0ce-acd58559fb62"
 title: "ADR-0017: LLVM builds libztree.a in each mode"
 type: "ADR"
 tags:
@@ -7,8 +7,8 @@ tags:
   - "build"
   - "binding"
   - "security"
-created: "2026-11-19T11:46:22-06:00"
-timestamp: "2026-11-19T11:46:22-06:00"
+x-okfw-created: "2026-11-19T11:46:22-06:00"
+x-okfw-timestamp: "2026-11-19T11:46:22-06:00"
 description: "libztree.a uses the LLVM backend in each mode, so each object has a .note.GNU-stack section, and a build tool checks the section."
 ---
 

@@ -1,5 +1,5 @@
 ---
-id: "01a1f47f-0da8-73f3-86f7-8cdc0797e0a8"
+x-okfw-id: "01a1f47f-0da8-73f3-86f7-8cdc0797e0a8"
 title: "ADR-0016: A hash file of libztree.a in the Go binding"
 type: "ADR"
 tags:
@@ -7,8 +7,8 @@ tags:
   - "binding"
   - "go"
   - "build"
-created: "2026-11-19T09:48:49-06:00"
-timestamp: "2026-11-19T09:48:49-06:00"
+x-okfw-created: "2026-11-19T09:48:49-06:00"
+x-okfw-timestamp: "2026-11-19T09:48:49-06:00"
 description: "zig build lib writes the SHA-256 of libztree.a into bindings/go/libhash.go, so the Go build cache links a new library, and a Debug library holds the UBSan runtime."
 ---
 

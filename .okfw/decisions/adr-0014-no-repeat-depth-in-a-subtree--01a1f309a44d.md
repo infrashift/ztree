@@ -1,13 +1,13 @@
 ---
-id: "01a1f309-a44d-7e6a-972b-cfead4db2fd9"
+x-okfw-id: "01a1f309-a44d-7e6a-972b-cfead4db2fd9"
 title: "ADR-0014: No repeat depth in a subtree"
 type: "ADR"
 tags:
   - "adr"
   - "parser"
   - "subtree"
-created: "2026-11-19T03:00:57-06:00"
-timestamp: "2026-11-19T03:00:57-06:00"
+x-okfw-created: "2026-11-19T03:00:57-06:00"
+x-okfw-timestamp: "2026-11-19T03:00:57-06:00"
 description: "ztree removes repeat_depth from Subtree, because only the balance step of the reference reads it and its u16 add panicked on tables of more than 65,535 items."
 ---
 

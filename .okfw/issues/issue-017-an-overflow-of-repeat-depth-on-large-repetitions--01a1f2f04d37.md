@@ -1,16 +1,16 @@
 ---
-id: "01a1f2f0-4d37-7806-a8a7-4c5e9ce70c9e"
+x-okfw-id: "01a1f2f0-4d37-7806-a8a7-4c5e9ce70c9e"
 title: "ISSUE-017: An overflow of repeat_depth on large repetitions"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "parser"
   - "crash"
   - "phase-15"
   - "closed"
-created: "2026-11-19T02:33:17-06:00"
-timestamp: "2026-11-19T03:01:36-06:00"
+x-okfw-created: "2026-11-19T02:33:17-06:00"
+x-okfw-timestamp: "2026-11-19T03:01:36-06:00"
 description: "summarizeEnds adds 1 to the u16 repeat_depth for each item of a repetition, so a table of more than 65,535 items panics in a safe build."
 ---
 

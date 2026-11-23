@@ -1,15 +1,15 @@
 ---
-id: "01a1ef92-fe9b-73fd-b2d9-fc21a23a1cb1"
+x-okfw-id: "01a1ef92-fe9b-73fd-b2d9-fc21a23a1cb1"
 title: "ISSUE-015: Handoff to semscope"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "closed"
   - "phase-13"
   - "semscope"
-created: "2026-11-18T10:52:30-06:00"
-timestamp: "2026-11-18T10:52:30-06:00"
+x-okfw-created: "2026-11-18T10:52:30-06:00"
+x-okfw-timestamp: "2026-11-18T10:52:30-06:00"
 description: "Handoff to semscope."
 ---
 

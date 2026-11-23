@@ -1,15 +1,15 @@
 ---
-id: "01a1ef92-fe88-73e6-83e8-f034251d44bd"
+x-okfw-id: "01a1ef92-fe88-73e6-83e8-f034251d44bd"
 title: "ISSUE-012: A bounded regex engine for match predicates"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "phase-10"
   - "regex"
   - "closed"
-created: "2026-11-18T10:52:30-06:00"
-timestamp: "2026-11-18T15:29:24-06:00"
+x-okfw-created: "2026-11-18T10:52:30-06:00"
+x-okfw-timestamp: "2026-11-18T15:29:24-06:00"
 description: "A bounded regex engine for match predicates."
 ---
 

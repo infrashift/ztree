@@ -1,15 +1,15 @@
 ---
-id: "01a1e96b-8f69-73eb-84fb-c06917e2f98d"
+x-okfw-id: "01a1e96b-8f69-73eb-84fb-c06917e2f98d"
 title: "ISSUE-004: Error recovery with ERROR and MISSING nodes"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "phase-4"
   - "recovery"
   - "closed"
-created: "2026-11-17T06:11:42-06:00"
-timestamp: "2026-11-17T16:58:13-06:00"
+x-okfw-created: "2026-11-17T06:11:42-06:00"
+x-okfw-timestamp: "2026-11-17T16:58:13-06:00"
 description: "Error recovery with ERROR and MISSING nodes."
 ---
 

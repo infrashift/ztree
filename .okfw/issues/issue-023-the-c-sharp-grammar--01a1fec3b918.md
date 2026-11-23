@@ -1,15 +1,15 @@
 ---
-id: "01a1fec3-b918-79cb-bf1a-20b589ebbad8"
+x-okfw-id: "01a1fec3-b918-79cb-bf1a-20b589ebbad8"
 title: "ISSUE-023: The C# grammar"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "phase-22"
   - "grammar"
   - "closed"
-created: "2026-11-21T09:40:02-06:00"
-timestamp: "2026-11-21T09:40:09-06:00"
+x-okfw-created: "2026-11-21T09:40:02-06:00"
+x-okfw-timestamp: "2026-11-21T09:40:09-06:00"
 description: "Vendor tree-sitter-c-sharp and add it as the seventh grammar, so semscope and lexiscope can read C# files."
 ---
 

@@ -1,15 +1,15 @@
 ---
-id: "01a1e96b-8f48-7e9f-8534-1811c6447f2e"
+x-okfw-id: "01a1e96b-8f48-7e9f-8534-1811c6447f2e"
 title: "ISSUE-002: Lexer bridge for the lex function and the external scanners"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "phase-2"
   - "lexer"
   - "closed"
-created: "2026-11-17T06:11:42-06:00"
-timestamp: "2026-11-17T16:35:38-06:00"
+x-okfw-created: "2026-11-17T06:11:42-06:00"
+x-okfw-timestamp: "2026-11-17T16:35:38-06:00"
 description: "Lexer bridge for the lex function and the external scanners."
 ---
 

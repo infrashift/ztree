@@ -1,13 +1,13 @@
 ---
-id: "01a1ebbb-7488-75b0-aeda-b3b851777c9e"
+x-okfw-id: "01a1ebbb-7488-75b0-aeda-b3b851777c9e"
 title: "ADR-0005: One arena per parse, no reference counts and no balance step"
 type: "ADR"
 tags:
   - "adr"
   - "memory"
   - "parser"
-created: "2026-11-17T16:58:13-06:00"
-timestamp: "2026-11-17T16:58:13-06:00"
+x-okfw-created: "2026-11-17T16:58:13-06:00"
+x-okfw-timestamp: "2026-11-17T16:58:13-06:00"
 description: "ztree allocates each parse from one arena, copies on makeMut, and leaves out balancing and incremental reuse, with the same visible tree as the reference."
 ---
 

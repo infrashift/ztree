@@ -1,15 +1,15 @@
 ---
-id: "01a1ef92-fe8e-76dc-a815-27170f3a9f39"
+x-okfw-id: "01a1ef92-fe8e-76dc-a815-27170f3a9f39"
 title: "ISSUE-013: The query compiler"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "phase-11"
   - "query"
   - "closed"
-created: "2026-11-18T10:52:30-06:00"
-timestamp: "2026-11-18T15:55:46-06:00"
+x-okfw-created: "2026-11-18T10:52:30-06:00"
+x-okfw-timestamp: "2026-11-18T15:55:46-06:00"
 description: "The query compiler."
 ---
 

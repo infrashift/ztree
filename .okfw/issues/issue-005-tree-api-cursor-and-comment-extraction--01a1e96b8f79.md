@@ -1,15 +1,15 @@
 ---
-id: "01a1e96b-8f79-7815-b30c-f126009fdc2b"
+x-okfw-id: "01a1e96b-8f79-7815-b30c-f126009fdc2b"
 title: "ISSUE-005: Tree API, cursor and comment extraction"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "phase-5"
   - "tree"
   - "closed"
-created: "2026-11-17T06:11:42-06:00"
-timestamp: "2026-11-17T17:55:30-06:00"
+x-okfw-created: "2026-11-17T06:11:42-06:00"
+x-okfw-timestamp: "2026-11-17T17:55:30-06:00"
 description: "Tree API, cursor and comment extraction."
 ---
 

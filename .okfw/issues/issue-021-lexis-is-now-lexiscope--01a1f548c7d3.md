@@ -1,15 +1,15 @@
 ---
-id: "01a1f548-c7d3-75de-b200-3e376d02e9e1"
+x-okfw-id: "01a1f548-c7d3-75de-b200-3e376d02e9e1"
 title: "ISSUE-021: lexis is now lexiscope"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "phase-20"
   - "docs"
   - "closed"
-created: "2026-11-19T13:29:10-06:00"
-timestamp: "2026-11-19T13:34:25-06:00"
+x-okfw-created: "2026-11-19T13:29:10-06:00"
+x-okfw-timestamp: "2026-11-19T13:34:25-06:00"
 description: "The documentation linter lexis has the new name lexiscope, so the docs-lexis task and the current documents of ztree use an old name."
 ---
 

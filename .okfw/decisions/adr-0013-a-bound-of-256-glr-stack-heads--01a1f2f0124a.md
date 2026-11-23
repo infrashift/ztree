@@ -1,13 +1,13 @@
 ---
-id: "01a1f2f0-124a-7921-8ea2-b3f47199648f"
+x-okfw-id: "01a1f2f0-124a-7921-8ea2-b3f47199648f"
 title: "ADR-0013: A bound of 256 GLR stack heads"
 type: "ADR"
 tags:
   - "adr"
   - "parser"
   - "limits"
-created: "2026-11-19T02:33:02-06:00"
-timestamp: "2026-11-19T02:33:02-06:00"
+x-okfw-created: "2026-11-19T02:33:02-06:00"
+x-okfw-timestamp: "2026-11-19T02:33:02-06:00"
 description: "The GLR stack of ztree holds at most 256 heads, about 2.8 times the largest count on 73,701 files, so C++ headers read as C parse as in the reference."
 ---
 

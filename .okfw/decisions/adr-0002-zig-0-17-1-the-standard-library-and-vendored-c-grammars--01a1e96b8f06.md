@@ -1,13 +1,13 @@
 ---
-id: "01a1e96b-8f06-7d05-ad97-ead9a95fe574"
+x-okfw-id: "01a1e96b-8f06-7d05-ad97-ead9a95fe574"
 title: "ADR-0002: Zig 0.17.1, the standard library and vendored C grammars"
 type: "ADR"
 tags:
   - "adr"
   - "toolchain"
   - "dependencies"
-created: "2026-11-17T06:11:42-06:00"
-timestamp: "2026-11-17T06:11:42-06:00"
+x-okfw-created: "2026-11-17T06:11:42-06:00"
+x-okfw-timestamp: "2026-11-17T06:11:42-06:00"
 description: "ztree uses Zig 0.17.1 and its standard library, and vendors pinned Tree-sitter C sources in third_party/."
 ---
 

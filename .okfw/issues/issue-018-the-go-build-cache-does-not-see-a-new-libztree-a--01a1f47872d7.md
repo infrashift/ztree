@@ -1,16 +1,16 @@
 ---
-id: "01a1f478-72d7-7e54-a692-5b3502ac2f64"
+x-okfw-id: "01a1f478-72d7-7e54-a692-5b3502ac2f64"
 title: "ISSUE-018: The Go build cache does not see a new libztree.a"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "closed"
   - "phase-17"
   - "binding"
   - "go"
-created: "2026-11-19T09:41:36-06:00"
-timestamp: "2026-11-19T09:41:36-06:00"
+x-okfw-created: "2026-11-19T09:41:36-06:00"
+x-okfw-timestamp: "2026-11-19T09:41:36-06:00"
 description: "cgo links libztree.a through -l, so the Go build cache can link an old library after a new zig build lib."
 ---
 

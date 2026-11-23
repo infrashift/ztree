@@ -1,15 +1,15 @@
 ---
-id: "01a1e96b-8f8a-71c9-b3ed-b1d2e3a79d80"
+x-okfw-id: "01a1e96b-8f8a-71c9-b3ed-b1d2e3a79d80"
 title: "ISSUE-006: Conformance with grammar corpus tests and the reference runtime"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "phase-6"
   - "conformance"
   - "closed"
-created: "2026-11-17T06:11:42-06:00"
-timestamp: "2026-11-17T18:10:48-06:00"
+x-okfw-created: "2026-11-17T06:11:42-06:00"
+x-okfw-timestamp: "2026-11-17T18:10:48-06:00"
 description: "Conformance with grammar corpus tests and the reference runtime."
 ---
 

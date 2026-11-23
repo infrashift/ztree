@@ -1,15 +1,15 @@
 ---
-id: "01a1e96b-8f58-7e69-8e12-78aaa8f0b1c6"
+x-okfw-id: "01a1e96b-8f58-7e69-8e12-78aaa8f0b1c6"
 title: "ISSUE-003: Parser core with the subtree arena and the GLR stack"
 type: "Issue"
-kind: "issue"
+x-okfw-kind: "issue"
 tags:
   - "issue"
   - "phase-3"
   - "parser"
   - "closed"
-created: "2026-11-17T06:11:42-06:00"
-timestamp: "2026-11-17T16:58:13-06:00"
+x-okfw-created: "2026-11-17T06:11:42-06:00"
+x-okfw-timestamp: "2026-11-17T16:58:13-06:00"
 description: "Parser core with the subtree arena and the GLR stack."
 ---
 
